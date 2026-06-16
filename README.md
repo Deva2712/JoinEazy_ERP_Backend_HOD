@@ -423,12 +423,6 @@ logger.error("Failed to generate report", { error });
 | **Key Modules** | Cohorts, Assignments, Attendance | Department analytics, Faculty, Placements |
 | **Users** | Professors, Students | HOD, Admin |
 
----
-
-## 👥 Team
-
-- HOD Backend Lead — You (10.70.23.112)
-- Developer — Intern (192.168.1.122)
 
 ---
 
