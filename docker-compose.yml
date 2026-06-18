@@ -9,7 +9,7 @@ services:
       POSTGRES_USER: joineazy_hod_user
       POSTGRES_PASSWORD: joineazy_hod_pass
     ports:
-      - "10.70.23.112:5433:5432"
+      - "192.168.0.102:5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -24,7 +24,7 @@ services:
     env_file:
       - .env
     ports:
-      - "10.70.23.112:${PORT}:${PORT}"
+      - "192.168.0.102:${PORT}:${PORT}"
     environment:
       - NODE_ENV=${NODE_ENV}
       - PORT=${PORT}
