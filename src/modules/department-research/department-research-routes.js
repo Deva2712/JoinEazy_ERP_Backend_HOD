@@ -5,7 +5,8 @@ import {
   getGrantRequests,
   getResearchExpenses,
   getAllocationBreakdown,
-  approveGrant
+  approveGrant,
+  updateGrantStatus
 } from "./department-research-controller.js";
 
 const router = express.Router();
@@ -18,5 +19,6 @@ router.get("/grant-requests", getGrantRequests);
 router.get("/expenses", getResearchExpenses);
 router.get("/allocation", getAllocationBreakdown);
 router.put("/grant-requests/:id", approveGrant);
+router.post("/grant-status", updateGrantStatus);
 
 export default router;

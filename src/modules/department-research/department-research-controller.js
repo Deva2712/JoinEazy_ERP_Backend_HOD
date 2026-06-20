@@ -35,4 +35,19 @@ export const approveGrant = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, data: result });
 });
 
+export const updateGrantStatus = asyncHandler(async (req, res) => {
+  const { requestId, status } = req.body;
+  let action;
+  if (status === "Approved") {
+    action = "approve";
+  } else if (status === "Rejected") {
+    action = "reject";
+  }
+  const result = await approveGrantService(requestId, action);
+  if (!result) {
+    return res.status(404).json({ success: false, message: "Grant not found" });
+  }
+  res.status(200).json({ success: true, data: result });
+});
+
 export default {};
