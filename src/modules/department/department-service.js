@@ -1,59 +1,33 @@
-const mockDepartments = [
-  {
-    id: "dept-cs-001",
-    name: "Computer Science & Engineering",
-    code: "CSE",
-    hod_name: "Dr. Robert Aris",
-    established_year: 1998,
-    description: "Focuses on computing theory, software engineering, and AI research",
-    academic_year: "2025-2026",
-    isActive: true
-  },
-  {
-    id: "dept-ec-001",
-    name: "Electronics & Communication Engineering",
-    code: "ECE",
-    hod_name: "Dr. Priya Sharma",
-    established_year: 2001,
-    description: "Covers electronics, signal processing, and communication systems",
-    academic_year: "2025-2026",
-    isActive: true
-  }
-];
+import Department from "./department-model.js";
 
 export const getDepartment = async () => {
-  return mockDepartments.find((dept) => dept.isActive === true) || null;
+  return await Department.findOne({
+    order: [["createdAt", "ASC"]]
+  });
 };
 
 export const createDepartment = async (data) => {
-  const newDept = {
-    id: "dept-" + Date.now(),
+  return await Department.create({
     name: data.name,
     code: data.code,
-    hod_name: data.hod_name,
-    established_year: data.established_year,
-    description: data.description || "",
-    academic_year: data.academic_year,
-    isActive: data.isActive !== undefined ? data.isActive : true
-  };
-  mockDepartments.push(newDept);
-  return newDept;
+    hod_id: data.hod_id,
+    description: data.description
+  });
 };
 
 export const updateDepartment = async (id, data) => {
-  const found = mockDepartments.find((dept) => dept.id === id);
-  if (!found) {
+  const department = await Department.findByPk(id);
+  if (!department) {
     return null;
   }
-  Object.assign(found, data);
-  return found;
+  return await department.update(data);
 };
 
 export const deleteDepartment = async (id) => {
-  const found = mockDepartments.find((dept) => dept.id === id);
-  if (!found) {
+  const department = await Department.findByPk(id);
+  if (!department) {
     return null;
   }
-  found.isActive = false;
+  await department.destroy();
   return { message: "Department deleted" };
 };

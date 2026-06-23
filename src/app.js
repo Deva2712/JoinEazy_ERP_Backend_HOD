@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import "dotenv/config";
 
 // Route imports
@@ -17,6 +18,9 @@ import analyticsRoutes from "./modules/analytics/analytics-routes.js";
 import reportsRoutes from "./modules/reports/reports-routes.js";
 import approvalsRoutes from "./modules/approvals/approvals-routes.js";
 import notificationsRoutes from "./modules/notifications/notifications-routes.js";
+import scheduleRoutes from "./modules/schedule/schedule-routes.js";
+import leavesRoutes from "./modules/leaves/leaves-routes.js";
+import jobTrayRoutes from "./modules/job-tray/job-tray-routes.js";
 
 // Middleware imports
 import { errorHandler } from "./middleware/error.middleware.js";
@@ -30,6 +34,7 @@ app.use(cors({
   credentials: true,
 }));
 app.use(express.json());
+app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(requestLogger);
 
@@ -37,6 +42,7 @@ app.use(requestLogger);
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/dashboard", dashboardRoutes);
+app.use("/api/v1/user/dashboard-overview", dashboardRoutes);
 app.use("/api/v1/department", departmentRoutes);
 app.use("/api/v1/department/overview", departmentOverviewRoutes);
 app.use("/api/v1/department/courses", departmentCoursesRoutes);
@@ -48,6 +54,9 @@ app.use("/api/v1/analytics", analyticsRoutes);
 app.use("/api/v1/reports", reportsRoutes);
 app.use("/api/v1/approvals", approvalsRoutes);
 app.use("/api/v1/notifications", notificationsRoutes);
+app.use("/api/v1/schedule", scheduleRoutes);
+app.use("/api/v1/leaves", leavesRoutes);
+app.use("/api/v1/job-tray", jobTrayRoutes);
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
 app.get("/health", (req, res) => {

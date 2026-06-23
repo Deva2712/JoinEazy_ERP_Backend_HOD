@@ -1,106 +1,137 @@
-const mockCourses = [
-  {
-    id: "cs-101",
-    code: "CS101",
-    name: "Introduction to Computer Science",
-    semester: "Fall 2026",
-    faculty_names: ["Dr. Alice Smith", "Prof. Bob Jones"],
-    weekly_schedule: [
-      { day: "Monday", time: "10:00 AM - 11:30 AM", room: "Room 401" },
-      { day: "Wednesday", time: "10:00 AM - 11:30 AM", room: "Room 401" }
-    ],
-    attendance_history: [
-      { date: "2026-06-15", day: "Monday", percentage: 92 },
-      { date: "2026-06-17", day: "Wednesday", percentage: 88 }
-    ],
-    grading_status: {
-      assignments: { total: 5, completed: 3, ongoing: 2 },
-      projects: { total: 2, completed: 1, ongoing: 1 }
-    },
-    documents: [
-      { name: "Syllabus", version: "v1.0", date: "2026-06-01", approval_status: "Approved" },
-      { name: "Lecture 1 Slides", version: "v1.1", date: "2026-06-10", approval_status: "Approved" }
-    ],
-    reflections: [
-      {
-        date: "2026-06-15",
-        day: "Monday",
-        what_was_taught: "Introduction to Databases & SQL",
-        needs_improvement: "Pacing of SQL queries introduction",
-        next_topic: "ER Diagrams"
-      }
-    ],
-    course_summary: {
-      class_size: 60,
-      credits: 4,
-      syllabus_coverage_percentage: 85,
-      attendance_percentage: 90
-    }
-  },
-  {
-    id: "cs-102",
-    code: "CS102",
-    name: "Data Structures and Algorithms",
-    semester: "Fall 2026",
-    faculty_names: ["Dr. Carol White", "Prof. Dave Miller"],
-    weekly_schedule: [
-      { day: "Tuesday", time: "01:00 PM - 02:30 PM", room: "Room 302" },
-      { day: "Thursday", time: "01:00 PM - 02:30 PM", room: "Room 302" }
-    ],
-    attendance_history: [
-      { date: "2026-06-16", day: "Tuesday", percentage: 95 }
-    ],
-    grading_status: {
-      assignments: { total: 6, completed: 4, ongoing: 2 },
-      projects: { total: 1, completed: 0, ongoing: 1 }
-    },
-    documents: [
-      { name: "Course Guidelines", version: "v1.0", date: "2026-06-02", approval_status: "Approved" },
-      { name: "Assignment 1 Specification", version: "v2.0", date: "2026-06-12", approval_status: "Pending" }
-    ],
-    reflections: [
-      {
-        date: "2026-06-16",
-        day: "Tuesday",
-        what_was_taught: "Complexity Analysis and Big O Notation",
-        needs_improvement: "Need more practical examples for space complexity",
-        next_topic: "Linked Lists"
-      }
-    ],
-    course_summary: {
-      class_size: 55,
-      credits: 4,
-      syllabus_coverage_percentage: 75,
-      attendance_percentage: 93
-    }
-  }
-];
+import Course from "./department-courses-model.js";
+import UserCourse from "./user-course-model.js";
+import AttendanceRecord from "./attendance-record-model.js";
+import { Op } from "sequelize";
 
 export const getAllCourses = async () => {
-  return mockCourses.map(course => ({
+  const courses = await Course.findAll();
+  return courses.map(course => ({
     id: course.id,
     code: course.code,
     name: course.name,
     semester: course.semester,
-    faculty_names: course.faculty_names
+    // TODO: join with User model once association is set up
+    faculty_names: []
   }));
 };
 
 export const getCourseDetails = async (id) => {
-  const course = mockCourses.find(c => c.id === id);
+  const course = await Course.findByPk(id);
   if (!course) return null;
-  return course;
+
+  const studentsCount = await UserCourse.count({
+    where: {
+      course_id: id,
+      role_in_course: "student"
+    }
+  });
+
+  // Query faculty user courses
+  // TODO: join with User model once association is set up to get faculty names
+  const facultyUserCourses = await UserCourse.findAll({
+    where: {
+      course_id: id,
+      role_in_course: "faculty"
+    }
+  });
+
+  const allUserCourses = await UserCourse.findAll({
+    where: { course_id: id }
+  });
+  const userCourseIds = allUserCourses.map(uc => uc.id);
+
+  let attendance_history = [];
+  if (userCourseIds.length > 0) {
+    const attendanceRecords = await AttendanceRecord.findAll({
+      where: {
+        user_course_id: {
+          [Op.in]: userCourseIds
+        }
+      }
+    });
+
+    const groupedByDate = {};
+    for (const record of attendanceRecords) {
+      const date = record.date;
+      if (!groupedByDate[date]) {
+        groupedByDate[date] = { presentCount: 0, totalCount: 0 };
+      }
+      groupedByDate[date].totalCount += 1;
+      if (record.status === "present") {
+        groupedByDate[date].presentCount += 1;
+      }
+    }
+
+    attendance_history = Object.entries(groupedByDate).map(([date, counts]) => {
+      const percentage = counts.totalCount > 0
+        ? (counts.presentCount / counts.totalCount) * 100
+        : 0;
+      return { date, percentage };
+    });
+
+    attendance_history.sort((a, b) => new Date(a.date) - new Date(b.date));
+  }
+
+  let attendance_percentage = 0;
+  if (attendance_history.length > 0) {
+    const sum = attendance_history.reduce((acc, curr) => acc + curr.percentage, 0);
+    attendance_percentage = sum / attendance_history.length;
+  }
+
+  return {
+    id: course.id,
+    code: course.code,
+    name: course.name,
+    semester: course.semester,
+    credits: course.credits,
+    status: course.status,
+    faculty_names: [],
+    attendance_history,
+    grading_status: {
+      assignments: { total: 0, completed: 0, ongoing: 0 },
+      projects: { total: 0, completed: 0, ongoing: 0 }
+    },
+    documents: [],
+    reflections: [],
+    course_summary: {
+      class_size: studentsCount,
+      credits: course.credits,
+      syllabus_coverage_percentage: 0,
+      attendance_percentage
+    }
+  };
 };
 
 export const getCourseDocuments = async (id) => {
-  const course = mockCourses.find(c => c.id === id);
+  const course = await Course.findByPk(id);
   if (!course) return null;
-  return course.documents;
+  return [];
 };
 
 export const updateCourse = async (id, data) => {
-  const course = mockCourses.find(c => c.id === id);
+  const course = await Course.findByPk(id);
   if (!course) return null;
-  Object.assign(course, data);
+
+  const allowedFields = ["name", "code", "credits", "semester", "status", "department_id"];
+  const updateData = {};
+  for (const field of allowedFields) {
+    if (data[field] !== undefined) {
+      updateData[field] = data[field];
+    }
+  }
+
+  await course.update(updateData);
   return course;
 };
+
+export const createCourse = async (data) => {
+  return await Course.create({
+    name: data.name,
+    code: data.code,
+    credits: data.credits,
+    semester: data.semester,
+    department_id: data.department_id,
+    status: data.status || "active"
+  });
+};
+

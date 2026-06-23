@@ -5,6 +5,7 @@ import {
   getCourseDetails,
   getCourseDocuments,
   updateCourse,
+  createCourse,
 } from "./department-courses-controller.js";
 
 const router = express.Router();
@@ -13,6 +14,7 @@ router.use(protect);
 router.use(authorize("hod", "admin"));
 
 router.get("/", getAllCourses);
+router.post("/", createCourse);
 router.get("/:id", getCourseDetails);
 router.get("/:id/documents", getCourseDocuments);
 router.put("/:id", updateCourse);

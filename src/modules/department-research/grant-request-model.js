@@ -1,48 +1,44 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../../database/connection.js";
 
-const Faculty = sequelize.define(
-  "Faculty",
+const GrantRequest = sequelize.define(
+  "GrantRequest",
   {
     id: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    user_id: {
+    research_project_id: {
       type: DataTypes.UUID,
       allowNull: true,
     },
-    department_id: {
-      type: DataTypes.UUID,
-      allowNull: true,
-    },
-    employee_id: {
+    title: {
       type: DataTypes.STRING,
-      allowNull: true,
-    },
-    designation: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    specialization: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    experience_years: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: false,
     },
     status: {
       type: DataTypes.STRING,
       allowNull: true,
-      defaultValue: "active",
+      defaultValue: "Pending",
+    },
+    amount_inr: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    justification: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    requested_at: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
     },
   },
   {
-    tableName: "faculty",
+    tableName: "grant_requests",
     timestamps: true,
   }
 );
 
-export default Faculty;
+export default GrantRequest;

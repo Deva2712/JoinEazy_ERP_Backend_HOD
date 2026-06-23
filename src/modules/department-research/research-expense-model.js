@@ -1,45 +1,35 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../../database/connection.js";
 
-const Course = sequelize.define(
-  "Course",
+const ResearchExpense = sequelize.define(
+  "ResearchExpense",
   {
     id: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    department_id: {
+    research_project_id: {
       type: DataTypes.UUID,
       allowNull: true,
     },
-    name: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    code: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-    },
-    credits: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    semester: {
+    category: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    status: {
-      type: DataTypes.STRING,
+    amount_inr: {
+      type: DataTypes.FLOAT,
       allowNull: true,
-      defaultValue: "active",
+    },
+    expense_date: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
     },
   },
   {
-    tableName: "courses",
+    tableName: "research_expenses",
     timestamps: true,
   }
 );
 
-export default Course;
+export default ResearchExpense;

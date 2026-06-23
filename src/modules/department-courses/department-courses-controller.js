@@ -2,7 +2,8 @@ import {
   getAllCourses as getAllCoursesService,
   getCourseDetails as getCourseDetailsService,
   getCourseDocuments as getCourseDocumentsService,
-  updateCourse as updateCourseService
+  updateCourse as updateCourseService,
+  createCourse as createCourseService
 } from "./department-courses-service.js";
 import { asyncHandler } from "../../middleware/error.middleware.js";
 
@@ -33,6 +34,11 @@ export const updateCourse = asyncHandler(async (req, res) => {
     return res.status(404).json({ success: false, message: "Course not found" });
   }
   res.status(200).json({ success: true, data: updatedCourse });
+});
+
+export const createCourse = asyncHandler(async (req, res) => {
+  const result = await createCourseService(req.body);
+  res.status(201).json({ success: true, data: result });
 });
 
 export default {};
