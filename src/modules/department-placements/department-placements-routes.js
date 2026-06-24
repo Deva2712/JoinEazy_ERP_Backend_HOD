@@ -4,6 +4,7 @@ import {
   getAllPlacements,
   getBatchStats,
   getCompanyList,
+  getCompanies,
   getCompanyDetails,
   createJobOpening
 } from "./department-placements-controller.js";
@@ -15,7 +16,7 @@ router.use(authorize("hod", "admin"));
 
 router.get("/", getAllPlacements);
 router.get("/batch-stats", getBatchStats);
-router.get("/companies", getCompanyList);
+router.get("/companies", getCompanies);
 router.post("/job-openings", createJobOpening);
 router.get("/companies/:id", getCompanyDetails);
 

@@ -1,6 +1,7 @@
 import "dotenv/config";
 import app from "./src/app.js";
 import { connectDB } from "./src/database/connection.js";
+import "./src/database/associations.js";
 import logger from "./src/utils/logger.js";
 
 const PORT = process.env.PORT || 6000;

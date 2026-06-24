@@ -1,6 +1,7 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../../database/connection.js";
 import bcrypt from "bcryptjs";
+import UserCourse from "../department-courses/user-course-model.js";
 
 const User = sequelize.define(
   "User",
@@ -132,5 +133,7 @@ User.beforeUpdate(async (user) => {
 User.prototype.matchPassword = async function (enteredPassword) {
   return bcrypt.compare(enteredPassword, this.password);
 };
+
+User.hasMany(UserCourse, { as: "userCourses", foreignKey: "user_id" });
 
 export default User;

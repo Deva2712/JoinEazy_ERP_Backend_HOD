@@ -1,9 +1,14 @@
 import Department from "./department-model.js";
 
 export const getDepartment = async () => {
-  return await Department.findOne({
+  const dept = await Department.findOne({
     order: [["createdAt", "ASC"]]
   });
+  if (!dept) return null;
+  return {
+    ...dept.toJSON(),
+    academic_year: "2025-2026"
+  };
 };
 
 export const createDepartment = async (data) => {

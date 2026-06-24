@@ -137,8 +137,11 @@ export const getBatchStats = async () => {
   return computeStats(allPlacements, studentBatchMap, studentCountByBatch);
 };
 
-export const getCompanyList = async () => {
+export const getCompanies = async () => {
   const allPlacements = await Placement.findAll();
+
+  const studentIds = [...new Set(allPlacements.map(p => p.student_id).filter(id => id !== null))];
+  const studentBatchMap = await getBatchForStudents(studentIds);
 
   const grouped = {};
   for (const p of allPlacements) {
@@ -149,22 +152,60 @@ export const getCompanyList = async () => {
     grouped[p.company_name].push(p);
   }
 
-  const companiesArray = Object.entries(grouped).map(([name, rows]) => {
+  return Object.entries(grouped).map(([name, rows]) => {
     const firstRow = rows[0];
+
+    const batchGroups = {};
+    for (const p of rows) {
+      const batch = studentBatchMap.get(p.student_id);
+      if (!batch) continue;
+      if (!batchGroups[batch]) {
+        batchGroups[batch] = {
+          batch,
+          count: 0,
+          ftAmounts: []
+        };
+      }
+      const g = batchGroups[batch];
+      g.count += 1;
+      if (p.opportunity_type === "FULL_TIME" && p.amount !== null && p.amount !== undefined) {
+        g.ftAmounts.push(Number(p.amount));
+      }
+    }
+
+    const hiringHistory = Object.values(batchGroups).map(g => {
+      const avgPackageLPA = g.ftAmounts.length > 0
+        ? Number((g.ftAmounts.reduce((sum, val) => sum + val, 0) / g.ftAmounts.length).toFixed(1))
+        : 0;
+      return {
+        batch: g.batch,
+        studentsPlaced: g.count,
+        avgPackageLPA
+      };
+    });
+
     return {
       id: name,
       name: name,
+      company_name: name,
       tier: firstRow.company_tier || null,
       sector: firstRow.sector || null,
-      location: null,
-      status: "Active"
+      headquarters: firstRow.location || "N/A",
+      location: firstRow.location || null,
+      status: "Active",
+      contactPerson: { name: "HR Manager", email: "hr@company.com" },
+      currentOpenings: [],
+      hiringHistory
     };
   });
+};
 
-  const total_partners = companiesArray.length;
+export const getCompanyList = async () => {
+  const companies = await getCompanies();
+  const total_partners = companies.length;
 
-  const tier_1_count = companiesArray.filter(c => c.tier === "Tier 1").length;
-  const sectorsSet = new Set(companiesArray.map(c => c.sector).filter(s => s !== null));
+  const tier_1_count = companies.filter(c => c.tier === "Tier 1").length;
+  const sectorsSet = new Set(companies.map(c => c.sector).filter(s => s !== null));
   const topSectors = [...sectorsSet].slice(0, 4);
 
   const partner_insights = {
@@ -176,7 +217,7 @@ export const getCompanyList = async () => {
   return {
     total_partners,
     partner_insights,
-    companies: companiesArray
+    companies
   };
 };
 

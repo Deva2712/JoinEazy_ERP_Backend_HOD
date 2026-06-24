@@ -3,7 +3,8 @@ import {
   getBatchStats as getBatchStatsService,
   getCompanyList as getCompanyListService,
   getCompanyDetails as getCompanyDetailsService,
-  createJobOpening as createJobOpeningService
+  createJobOpening as createJobOpeningService,
+  getCompanies as getCompaniesService
 } from "./department-placements-service.js";
 import { asyncHandler } from "../../middleware/error.middleware.js";
 
@@ -19,6 +20,11 @@ export const getBatchStats = asyncHandler(async (req, res) => {
 
 export const getCompanyList = asyncHandler(async (req, res) => {
   const result = await getCompanyListService();
+  res.status(200).json({ success: true, data: result });
+});
+
+export const getCompanies = asyncHandler(async (req, res) => {
+  const result = await getCompaniesService();
   res.status(200).json({ success: true, data: result });
 });
 

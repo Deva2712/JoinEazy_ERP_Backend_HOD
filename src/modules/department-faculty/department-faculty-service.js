@@ -3,51 +3,57 @@ import User from "../auth/auth-model.js";
 import UserCourse from "../department-courses/user-course-model.js";
 import Course from "../department-courses/department-courses-model.js";
 import { Op } from "sequelize";
+import ResearchProject from "../department-research/research-project-model.js";
 
 export const getAllFaculty = async () => {
-  const faculties = await Faculty.findAll();
-
-  const userIds = [...new Set(faculties.map(f => f.user_id).filter(id => id !== null))];
-
-  const users = await User.findAll({
-    where: {
-      id: {
-        [Op.in]: userIds
+  const faculties = await Faculty.findAll({
+    include: [
+      {
+        model: User,
+        as: "user",
+        required: false,
+        include: [
+          {
+            model: UserCourse,
+            as: "userCourses",
+            where: { role_in_course: "faculty" },
+            required: false,
+            include: [
+              {
+                model: Course,
+                as: "course",
+                required: false
+              }
+            ]
+          }
+        ]
       }
-    },
-    attributes: ["id", "name"]
+    ]
   });
 
-  const userMap = new Map(users.map(u => [u.id, u.name]));
+  return faculties.map(f => {
+    const name = f.user?.name || "Unknown";
+    const userCourses = f.user?.userCourses || [];
+    const courses_count = userCourses.length;
 
-  const results = [];
-  for (const faculty of faculties) {
-    const name = faculty.user_id ? (userMap.get(faculty.user_id) || "Unknown") : "Unknown";
-
-    let courses_count = 0;
-    if (faculty.user_id) {
-      courses_count = await UserCourse.count({
-        where: {
-          user_id: faculty.user_id,
-          role_in_course: "faculty"
-        }
-      });
+    let hours_per_week = 0;
+    for (const uc of userCourses) {
+      if (uc.course && uc.course.credits) {
+        hours_per_week += uc.course.credits;
+      }
     }
 
-    // hours_per_week is hardcoded to 0 for now because no class duration data exists yet
-    results.push({
-      id: faculty.id,
+    return {
+      id: f.id,
       name,
-      designation: faculty.designation,
+      designation: f.designation,
       courses_count,
-      hours_per_week: 0
-    });
-  }
-
-  return results;
+      hours_per_week
+    };
+  });
 };
 
-export const getFacultyDetails = async (id) => {
+export const getFacultyById = async (id) => {
   const faculty = await Faculty.findByPk(id);
   if (!faculty) return null;
 
@@ -73,8 +79,17 @@ export const getFacultyDetails = async (id) => {
     });
   }
 
-  // Note: avg_rating, personal_attendance_percentage, and all academic_metrics stay 0 for now
-  // because faculty_feedback and research_members tables do not exist yet.
+  let research_count = 0;
+  if (name !== "Unknown") {
+    research_count = await ResearchProject.count({
+      where: {
+        authors: {
+          [Op.contains]: [name]
+        }
+      }
+    });
+  }
+
   return {
     id: faculty.id,
     name,
@@ -86,12 +101,16 @@ export const getFacultyDetails = async (id) => {
       personal_attendance_percentage: 0
     },
     academic_metrics: {
-      papers_published: 0,
-      projects_guided: 0,
+      papers_published: research_count,
+      projects_guided: research_count,
       conferences_attended: 0
-    }
+    },
+    research_count,
+    publications_count: research_count
   };
 };
+
+export const getFacultyDetails = getFacultyById;
 
 export const getFacultyWorkload = async (id) => {
   const faculty = await Faculty.findByPk(id);

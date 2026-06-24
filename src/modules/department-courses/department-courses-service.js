@@ -2,17 +2,40 @@ import Course from "./department-courses-model.js";
 import UserCourse from "./user-course-model.js";
 import AttendanceRecord from "./attendance-record-model.js";
 import { Op } from "sequelize";
+import User from "../auth/auth-model.js";
 
 export const getAllCourses = async () => {
-  const courses = await Course.findAll();
-  return courses.map(course => ({
-    id: course.id,
-    code: course.code,
-    name: course.name,
-    semester: course.semester,
-    // TODO: join with User model once association is set up
-    faculty_names: []
-  }));
+  const courses = await Course.findAll({
+    include: [
+      {
+        model: UserCourse,
+        as: "userCourses",
+        where: { role_in_course: "faculty" },
+        required: false,
+        include: [
+          {
+            model: User,
+            as: "user",
+            attributes: ["name"]
+          }
+        ]
+      }
+    ]
+  });
+
+  return courses.map(course => {
+    const faculty_names = (course.userCourses || [])
+      .map(uc => uc.user?.name)
+      .filter(Boolean);
+
+    return {
+      id: course.id,
+      code: course.code,
+      name: course.name,
+      semester: course.semester,
+      faculty_names
+    };
+  });
 };
 
 export const getCourseDetails = async (id) => {
