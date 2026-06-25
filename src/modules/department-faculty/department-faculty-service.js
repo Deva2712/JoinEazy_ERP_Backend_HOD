@@ -70,6 +70,7 @@ export const getFacultyById = async (id) => {
   }
 
   let coursesCount = 0;
+  let courses = [];
   if (faculty.user_id) {
     coursesCount = await UserCourse.count({
       where: {
@@ -77,9 +78,35 @@ export const getFacultyById = async (id) => {
         role_in_course: "faculty"
       }
     });
+
+    const userCourses = await UserCourse.findAll({
+      where: {
+        user_id: faculty.user_id,
+        role_in_course: "faculty"
+      },
+      include: [
+        {
+          model: Course,
+          as: "course"
+        }
+      ]
+    });
+    courses = userCourses
+      .map(uc => {
+        if (!uc.course) return null;
+        return {
+          id: uc.course.id,
+          code: uc.course.code,
+          name: uc.course.name,
+          credits: uc.course.credits,
+          semester: uc.course.semester
+        };
+      })
+      .filter(Boolean);
   }
 
   let research_count = 0;
+  let research_projects = [];
   if (name !== "Unknown") {
     research_count = await ResearchProject.count({
       where: {
@@ -88,6 +115,20 @@ export const getFacultyById = async (id) => {
         }
       }
     });
+
+    const projects = await ResearchProject.findAll({
+      where: {
+        authors: {
+          [Op.contains]: [name]
+        }
+      }
+    });
+    research_projects = projects.map(p => ({
+      id: p.id,
+      title: p.title,
+      status: p.status,
+      total_budget_inr: p.total_budget_inr
+    }));
   }
 
   return {
@@ -106,7 +147,9 @@ export const getFacultyById = async (id) => {
       conferences_attended: 0
     },
     research_count,
-    publications_count: research_count
+    publications_count: research_count,
+    courses,
+    research_projects
   };
 };
 
