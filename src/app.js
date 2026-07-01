@@ -22,6 +22,14 @@ import scheduleRoutes from "./modules/schedule/schedule-routes.js";
 import leavesRoutes from "./modules/leaves/leaves-routes.js";
 import jobTrayRoutes from "./modules/job-tray/job-tray-routes.js";
 
+// Cohort imports
+import cohortRoutes from "./modules/cohort/cohort-routes.js";
+import cohortAssignmentsRoutes from "./modules/cohort-assignments/cohort-assignments-routes.js";
+import cohortAssignmentsGradeRoutes from "./modules/cohort-assignments/cohort-assignments-grade-routes.js";
+import cohortAttendanceRoutes from "./modules/cohort-attendance/cohort-attendance-routes.js";
+import cohortMembersRoutes from "./modules/cohort-members/cohort-members-routes.js";
+import cohortResourcesRoutes from "./modules/cohort-resources/cohort-resources-routes.js";
+
 // Middleware imports
 import { errorHandler } from "./middleware/error.middleware.js";
 import { requestLogger } from "./middleware/logger.middleware.js";
@@ -54,9 +62,17 @@ app.use("/api/v1/analytics", analyticsRoutes);
 app.use("/api/v1/reports", reportsRoutes);
 app.use("/api/v1/approvals", approvalsRoutes);
 app.use("/api/v1/notifications", notificationsRoutes);
-app.use("/api/v1/schedule", scheduleRoutes);
+app.use("/api/v1/professor", scheduleRoutes);
+app.use("/api/v1/sessions", scheduleRoutes);
 app.use("/api/v1/leaves", leavesRoutes);
 app.use("/api/v1/job-tray", jobTrayRoutes);
+
+app.use("/api/v1/cohort/assignments", cohortAssignmentsGradeRoutes);
+app.use("/api/v1/cohort/:cohortId/assignments", cohortAssignmentsRoutes);
+app.use("/api/v1/cohort/:cohortId/members", cohortMembersRoutes);
+app.use("/api/v1/cohort/:cohortId/resources", cohortResourcesRoutes);
+app.use("/api/v1/cohort", cohortRoutes);
+app.use("/api/v1", cohortAttendanceRoutes);
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
 app.get("/health", (req, res) => {
