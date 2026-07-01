@@ -38,7 +38,28 @@ export const getFinanceApprovals = async () => {
 export const getResearchApprovals = async () => {
   return {
     message: "Research grant approvals are managed via /api/v1/department/research/grant-requests",
-    data: []
+    data: [
+      {
+        id: "res-apr-001",
+        type: "research",
+        status: "Pending",
+        requested_by: "Dr. Alan Turing",
+        title: "DST Grant - AI Climate Research",
+        amount: 50000,
+        category: "Research Grant",
+        requested_at: "2026-06-15"
+      },
+      {
+        id: "res-apr-002",
+        type: "research",
+        status: "Pending",
+        requested_by: "Dr. Jane Smith",
+        title: "International Travel Grant - HRI 2026",
+        amount: 2200,
+        category: "Travel Grant",
+        requested_at: "2026-06-18"
+      }
+    ]
   };
 };
 

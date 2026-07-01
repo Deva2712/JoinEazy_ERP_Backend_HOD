@@ -36,5 +36,26 @@ export const approveLeaveRequest = async (id, payload) => {
 };
 
 export const getLeaveApplications = async () => {
-  return [];
+  return [
+    {
+      id: "leave-hod-001",
+      type: "leave",
+      leave_type: "Conference Leave",
+      status: "Approved",
+      start_date: "2026-07-10",
+      end_date: "2026-07-12",
+      reason: "Attending IEEE Conference on AI",
+      requested_at: "2026-06-20"
+    },
+    {
+      id: "leave-hod-002",
+      type: "leave",
+      leave_type: "Medical Leave",
+      status: "Pending",
+      start_date: "2026-06-30",
+      end_date: "2026-06-30",
+      reason: "Medical appointment",
+      requested_at: "2026-06-23"
+    }
+  ];
 };

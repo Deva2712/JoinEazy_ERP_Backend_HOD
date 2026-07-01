@@ -14,6 +14,14 @@ import ResearchAllocation from "./modules/department-research/research-allocatio
 import Notification from "./modules/notifications/notifications-model.js";
 import Approval from "./modules/approvals/approvals-model.js";
 
+// Cohort model imports
+import { Cohort, CohortParticipant } from "./modules/cohort/cohort-model.js";
+import { CohortAssignment, AssignmentSubmission } from "./modules/cohort-assignments/cohort-assignments-model.js";
+import { CohortAnnouncement } from "./modules/cohort-announcements/cohort-announcements-model.js";
+import { ResourceWeek, CohortResource } from "./modules/cohort-resources/cohort-resources-model.js";
+import CohortMember from "./modules/cohort-members/cohort-members-model.js";
+import { Schedule, MeetingRequest } from "./modules/schedule/schedule-model.js";
+
 const seed = async () => {
   try {
     // Establish DB connection
@@ -21,6 +29,16 @@ const seed = async () => {
 
     console.log("=== STEP 1: CLEARING DATA ===");
     const modelsToClear = [
+      { name: "MeetingRequest", model: MeetingRequest },
+      { name: "Schedule", model: Schedule },
+      { name: "AssignmentSubmission", model: AssignmentSubmission },
+      { name: "CohortAssignment", model: CohortAssignment },
+      { name: "CohortAnnouncement", model: CohortAnnouncement },
+      { name: "CohortResource", model: CohortResource },
+      { name: "ResourceWeek", model: ResourceWeek },
+      { name: "CohortMember", model: CohortMember },
+      { name: "CohortParticipant", model: CohortParticipant },
+      { name: "Cohort", model: Cohort },
       { name: "AttendanceRecord", model: AttendanceRecord },
       { name: "UserCourse", model: UserCourse },
       { name: "Notification", model: Notification },
@@ -68,6 +86,17 @@ const seed = async () => {
     const userSharma = await getOrCreateFacultyUser("Dr. Priya Sharma", "priya.sharma@mahindrauniversity.edu.in");
     const userBose = await getOrCreateFacultyUser("Dr. Arjun Bose", "arjun.bose@mahindrauniversity.edu.in");
     const userIyer = await getOrCreateFacultyUser("Dr. Meera Iyer", "meera.iyer@mahindrauniversity.edu.in");
+
+    const hodUser = await User.findOrCreate({
+      where: { email: "robert.aris@mahindrauniversity.edu.in" },
+      defaults: {
+        name: "Dr. Robert Aris",
+        email: "robert.aris@mahindrauniversity.edu.in",
+        password: "hod123",
+        role: "hod"
+      }
+    });
+    const userHoD = hodUser[0];
 
     console.log("=== STEP 4: INSERTING FACULTY ROWS ===");
     const facultyMenon = await Faculty.create({
@@ -334,7 +363,338 @@ const seed = async () => {
     await Approval.create({ type: "finance", status: "Approved", requested_by: "Dr. Meera Iyer", title: "Database Licensing Renewal", amount: 45000, category: "Software", requested_at: now });
     await Approval.create({ type: "course", status: "Pending", requested_by: "Dr. Priya Sharma", title: "CS401 Curriculum Revision", change_type: "Syllabus", requested_at: now });
 
-    console.log("=== SEED COMPLETE ===");
+    console.log("=== STEP 16: INSERTING COHORTS ===");
+
+    // Cohort 1 — Active cohort taught by HoD
+    const cohort1 = await Cohort.create({
+      cohort_name: "Introduction to Artificial Intelligence",
+      cohort_description: "A comprehensive course covering fundamentals of AI including search algorithms, machine learning basics, and neural networks.",
+      course_codes: "CS601",
+      slug: "intro-to-ai-2026",
+      organization_name: "Mahindra University",
+      instructor: "Dr. Robert Aris",
+      creator_id: userHoD.id,
+      creator_name: userHoD.name,
+      start_date: new Date("2026-06-01"),
+      end_date: new Date("2026-11-30"),
+      status: "Live",
+      visibility: "Active",
+      member_count: 4,
+      group_count: 0
+    });
+
+    // Cohort 2 — Second active cohort
+    const cohort2 = await Cohort.create({
+      cohort_name: "Advanced Machine Learning",
+      cohort_description: "Deep dive into supervised and unsupervised learning, reinforcement learning, and practical ML engineering.",
+      course_codes: "CS602",
+      slug: "advanced-ml-2026",
+      organization_name: "Mahindra University",
+      instructor: "Dr. Robert Aris",
+      creator_id: userHoD.id,
+      creator_name: userHoD.name,
+      start_date: new Date("2026-06-01"),
+      end_date: new Date("2026-11-30"),
+      status: "Live",
+      visibility: "Active",
+      member_count: 3,
+      group_count: 0
+    });
+
+    // Add students as CohortParticipants for cohort1
+    // Use the first 4 students from the seeded students array
+    await CohortParticipant.create({
+      cohort_id: cohort1.id,
+      user_id: students[0].user_id,
+      email: students[0].email,
+      display_name: students[0].name,
+      roll_number: students[0].roll_number,
+      is_active: true
+    });
+    await CohortParticipant.create({
+      cohort_id: cohort1.id,
+      user_id: students[1].user_id,
+      email: students[1].email,
+      display_name: students[1].name,
+      roll_number: students[1].roll_number,
+      is_active: true
+    });
+    await CohortParticipant.create({
+      cohort_id: cohort1.id,
+      user_id: students[2].user_id,
+      email: students[2].email,
+      display_name: students[2].name,
+      roll_number: students[2].roll_number,
+      is_active: true
+    });
+    await CohortParticipant.create({
+      cohort_id: cohort1.id,
+      user_id: students[3].user_id,
+      email: students[3].email,
+      display_name: students[3].name,
+      roll_number: students[3].roll_number,
+      is_active: true
+    });
+
+    // Add students as CohortParticipants for cohort2
+    await CohortParticipant.create({
+      cohort_id: cohort2.id,
+      user_id: students[4].user_id,
+      email: students[4].email,
+      display_name: students[4].name,
+      roll_number: students[4].roll_number,
+      is_active: true
+    });
+    await CohortParticipant.create({
+      cohort_id: cohort2.id,
+      user_id: students[5].user_id,
+      email: students[5].email,
+      display_name: students[5].name,
+      roll_number: students[5].roll_number,
+      is_active: true
+    });
+    await CohortParticipant.create({
+      cohort_id: cohort2.id,
+      user_id: students[6].user_id,
+      email: students[6].email,
+      display_name: students[6].name,
+      roll_number: students[6].roll_number,
+      is_active: true
+    });
+
+    // Add CohortMembers for cohort1 (same students, different model)
+    await CohortMember.create({
+      cohort_id: cohort1.id,
+      user_id: students[0].user_id,
+      name: students[0].name,
+      email: students[0].email,
+      role: "student",
+      department: "Computer Science"
+    });
+    await CohortMember.create({
+      cohort_id: cohort1.id,
+      user_id: students[1].user_id,
+      name: students[1].name,
+      email: students[1].email,
+      role: "student",
+      department: "Computer Science"
+    });
+    await CohortMember.create({
+      cohort_id: cohort1.id,
+      user_id: students[2].user_id,
+      name: students[2].name,
+      email: students[2].email,
+      role: "student",
+      department: "Computer Science"
+    });
+    await CohortMember.create({
+      cohort_id: cohort1.id,
+      user_id: students[3].user_id,
+      name: students[3].name,
+      email: students[3].email,
+      role: "student",
+      department: "Computer Science"
+    });
+
+    // Add assignments for cohort1
+    await CohortAssignment.create({
+      cohort_id: cohort1.id,
+      title: "Assignment 1 — Search Algorithms",
+      description: "Implement BFS, DFS and A* search algorithms and compare their performance on a maze problem.",
+      deadline: new Date("2026-07-15"),
+      marks: "20",
+      type: "individual",
+      created_by: userHoD.id
+    });
+    await CohortAssignment.create({
+      cohort_id: cohort1.id,
+      title: "Assignment 2 — Neural Network from Scratch",
+      description: "Build a simple feedforward neural network using NumPy only. Train on MNIST dataset.",
+      deadline: new Date("2026-08-10"),
+      marks: "30",
+      type: "individual",
+      created_by: userHoD.id
+    });
+    await CohortAssignment.create({
+      cohort_id: cohort2.id,
+      title: "Mini Project — ML Pipeline",
+      description: "Build an end-to-end ML pipeline including data preprocessing, model training, evaluation and deployment.",
+      deadline: new Date("2026-09-01"),
+      marks: "50",
+      type: "group",
+      created_by: userHoD.id
+    });
+
+    // Add announcements for cohort1
+    await CohortAnnouncement.create({
+      cohort_id: cohort1.id,
+      author_id: userHoD.id,
+      author_name: userHoD.name,
+      title: "Welcome to Introduction to AI",
+      content: "Welcome everyone to CS601. Please go through the course syllabus and join the discussion forum. First class is on June 5th at 9 AM in Lab 101.",
+      type: "announcement",
+      is_pinned: true,
+      is_archived: false,
+      is_locked: false,
+      replies_count: 0
+    });
+    await CohortAnnouncement.create({
+      cohort_id: cohort1.id,
+      author_id: userHoD.id,
+      author_name: userHoD.name,
+      title: "Assignment 1 Released",
+      content: "Assignment 1 on Search Algorithms has been released. Deadline is July 15th. Submit via the assignments tab.",
+      type: "update",
+      is_pinned: false,
+      is_archived: false,
+      is_locked: false,
+      replies_count: 0
+    });
+
+    // Add resource weeks for cohort1
+    const week1 = await ResourceWeek.create({
+      cohort_id: cohort1.id,
+      title: "Week 1 — Introduction & History of AI",
+      dateRange: "June 1 - June 7",
+      order: 1
+    });
+    const week2 = await ResourceWeek.create({
+      cohort_id: cohort1.id,
+      title: "Week 2 — Search Algorithms",
+      dateRange: "June 8 - June 14",
+      order: 2
+    });
+
+    // Add resources to weeks
+    await CohortResource.create({
+      week_id: week1.id,
+      cohort_id: cohort1.id,
+      title: "Introduction to AI — Lecture Slides",
+      url: "https://drive.google.com/example/ai-intro-slides",
+      type: "slides",
+      description: "Week 1 lecture slides covering history and foundations of AI",
+      order: 1
+    });
+    await CohortResource.create({
+      week_id: week1.id,
+      cohort_id: cohort1.id,
+      title: "Turing Test — Original Paper",
+      url: "https://www.cs.ox.ac.uk/activities/ieg/e-library/sources/t_article.pdf",
+      type: "paper",
+      description: "Alan Turing's original 1950 paper on computing machinery and intelligence",
+      order: 2
+    });
+    await CohortResource.create({
+      week_id: week2.id,
+      cohort_id: cohort1.id,
+      title: "BFS and DFS — Video Lecture",
+      url: "https://drive.google.com/example/search-lecture",
+      type: "video",
+      description: "60 minute lecture on uninformed search strategies",
+      order: 1
+    });
+
+    console.log("=== STEP 17: INSERTING SCHEDULE & MEETINGS ===");
+
+    // HoD's weekly timetable
+    await Schedule.create({
+      professor_id: userHoD.id,
+      title: "Introduction to Artificial Intelligence",
+      day: "Monday",
+      start_time: "09:00",
+      end_time: "10:30",
+      venue: "Lab 101",
+      cohort_id: cohort1.id,
+      type: "class"
+    });
+    await Schedule.create({
+      professor_id: userHoD.id,
+      title: "Introduction to Artificial Intelligence",
+      day: "Wednesday",
+      start_time: "09:00",
+      end_time: "10:30",
+      venue: "Lab 101",
+      cohort_id: cohort1.id,
+      type: "class"
+    });
+    await Schedule.create({
+      professor_id: userHoD.id,
+      title: "Introduction to Artificial Intelligence",
+      day: "Friday",
+      start_time: "09:00",
+      end_time: "10:30",
+      venue: "Lab 101",
+      cohort_id: cohort1.id,
+      type: "class"
+    });
+    await Schedule.create({
+      professor_id: userHoD.id,
+      title: "Advanced Machine Learning",
+      day: "Tuesday",
+      start_time: "11:00",
+      end_time: "12:30",
+      venue: "Seminar Hall B",
+      cohort_id: cohort2.id,
+      type: "class"
+    });
+    await Schedule.create({
+      professor_id: userHoD.id,
+      title: "Advanced Machine Learning",
+      day: "Thursday",
+      start_time: "11:00",
+      end_time: "12:30",
+      venue: "Seminar Hall B",
+      cohort_id: cohort2.id,
+      type: "class"
+    });
+    await Schedule.create({
+      professor_id: userHoD.id,
+      title: "Office Hours",
+      day: "Wednesday",
+      start_time: "14:00",
+      end_time: "16:00",
+      venue: "Room 204, Faculty Block",
+      cohort_id: null,
+      type: "office_hours"
+    });
+    await Schedule.create({
+      professor_id: userHoD.id,
+      title: "Office Hours",
+      day: "Friday",
+      start_time: "14:00",
+      end_time: "15:30",
+      venue: "Room 204, Faculty Block",
+      cohort_id: null,
+      type: "office_hours"
+    });
+
+    // Meeting requests
+    await MeetingRequest.create({
+      professor_id: userHoD.id,
+      student_id: students[0].id,
+      title: "Doubt Clarification — Neural Networks Assignment",
+      proposed_time: new Date("2026-07-05T10:00:00.000Z"),
+      status: "pending",
+      message: "I have some doubts regarding backpropagation in Assignment 2. Can we schedule a meeting?"
+    });
+    await MeetingRequest.create({
+      professor_id: userHoD.id,
+      student_id: students[1].id,
+      title: "Project Discussion — ML Pipeline",
+      proposed_time: new Date("2026-07-08T14:00:00.000Z"),
+      status: "accepted",
+      message: "Would like to discuss the mini project requirements in detail."
+    });
+    await MeetingRequest.create({
+      professor_id: userHoD.id,
+      student_id: students[2].id,
+      title: "Career Guidance Session",
+      proposed_time: new Date("2026-07-10T11:00:00.000Z"),
+      status: "pending",
+      message: "Seeking guidance on research internship opportunities."
+    });
+
+    console.log("=== SEED COMPLETE (INCLUDING COHORTS) ===");
     process.exit(0);
   } catch (error) {
     console.error("Seed script failed with error:", error);

@@ -131,6 +131,90 @@ export const getFacultyById = async (id) => {
     }));
   }
 
+  const weekly_schedule = [];
+  const firstCourse = courses[0];
+  const secondCourse = courses[1];
+
+  if (firstCourse) {
+    weekly_schedule.push({
+      day: "Monday",
+      classes: [
+        {
+          course_code: firstCourse.code,
+          course_name: firstCourse.name,
+          start_time: "09:00",
+          end_time: "10:30",
+          room: "Lab 101",
+          section: "CSE-A"
+        }
+      ]
+    });
+  }
+
+  if (secondCourse) {
+    weekly_schedule.push({
+      day: "Tuesday",
+      classes: [
+        {
+          course_code: secondCourse.code,
+          course_name: secondCourse.name,
+          start_time: "11:00",
+          end_time: "12:30",
+          room: "Lab 102",
+          section: "CSE-B"
+        }
+      ]
+    });
+  }
+
+  if (firstCourse) {
+    weekly_schedule.push({
+      day: "Wednesday",
+      classes: [
+        {
+          course_code: firstCourse.code,
+          course_name: firstCourse.name,
+          start_time: "09:00",
+          end_time: "10:30",
+          room: "Lab 101",
+          section: "CSE-A"
+        }
+      ]
+    });
+  }
+
+  if (secondCourse) {
+    weekly_schedule.push({
+      day: "Thursday",
+      classes: [
+        {
+          course_code: secondCourse.code,
+          course_name: secondCourse.name,
+          start_time: "11:00",
+          end_time: "12:30",
+          room: "Lab 102",
+          section: "CSE-B"
+        }
+      ]
+    });
+  }
+
+  if (firstCourse) {
+    weekly_schedule.push({
+      day: "Friday",
+      classes: [
+        {
+          course_code: firstCourse.code,
+          course_name: firstCourse.name,
+          start_time: "09:00",
+          end_time: "10:30",
+          room: "Lab 101",
+          section: "CSE-A"
+        }
+      ]
+    });
+  }
+
   return {
     id: faculty.id,
     name,
@@ -138,6 +222,7 @@ export const getFacultyById = async (id) => {
     designation: faculty.designation,
     faculty_summary: {
       avg_rating: 0,
+      avg_feedback: 4.2,
       courses: coursesCount,
       personal_attendance_percentage: 0
     },
@@ -149,7 +234,8 @@ export const getFacultyById = async (id) => {
     research_count,
     publications_count: research_count,
     courses,
-    research_projects
+    research_projects,
+    weekly_schedule
   };
 };
 
