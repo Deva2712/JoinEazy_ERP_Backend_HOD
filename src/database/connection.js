@@ -28,6 +28,16 @@ export const connectDB = async () => {
   await sequelize.authenticate();
   logger.info("PostgreSQL connected via Sequelize");
   if (process.env.NODE_ENV === "development") {
+    try {
+      await sequelize.query(`
+        ALTER TABLE cohort_assignments 
+        ALTER COLUMN marks DROP DEFAULT,
+        ALTER COLUMN marks TYPE FLOAT USING marks::double precision,
+        ALTER COLUMN marks SET DEFAULT 10
+      `);
+    } catch (e) {
+      // already correct type, ignore
+    }
     await sequelize.sync({ alter: true });
     logger.info("Database synced");
   }

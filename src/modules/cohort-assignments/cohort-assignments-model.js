@@ -8,7 +8,7 @@ const CohortAssignment = sequelize.define("CohortAssignment", {
   title:       { type: DataTypes.STRING, allowNull: false },
   description: { type: DataTypes.TEXT, allowNull: true },
   deadline:    { type: DataTypes.DATE, allowNull: true },
-  marks:       { type: DataTypes.STRING, allowNull: true, defaultValue: "10" },
+  marks:       { type: DataTypes.FLOAT, allowNull: true, defaultValue: 10 },
   type:        { type: DataTypes.ENUM("individual", "group"), defaultValue: "individual" },
   created_by:  { type: DataTypes.UUID, allowNull: true },
   submission_link: { type: DataTypes.STRING, allowNull: true },
@@ -27,9 +27,12 @@ const AssignmentSubmission = sequelize.define("AssignmentSubmission", {
   assignment_id: { type: DataTypes.UUID, allowNull: false, references: { model: "cohort_assignments", key: "id" }, onDelete: "CASCADE" },
   student_id:    { type: DataTypes.UUID, allowNull: false },
   student_name:  { type: DataTypes.STRING, allowNull: true },
+  group_id:      { type: DataTypes.UUID, allowNull: true },
   link:          { type: DataTypes.STRING, allowNull: true },
   note:          { type: DataTypes.TEXT, allowNull: true },
   grade:         { type: DataTypes.STRING, allowNull: true },
+  marks_awarded: { type: DataTypes.FLOAT, allowNull: true },
+  feedback:      { type: DataTypes.TEXT, allowNull: true },
   submitted_at:  { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
 }, {
   tableName: "assignment_submissions",
@@ -38,6 +41,7 @@ const AssignmentSubmission = sequelize.define("AssignmentSubmission", {
   indexes: [
     { fields: ["assignment_id"] },
     { unique: true, fields: ["assignment_id", "student_id"] },
+    { fields: ["group_id"] },
   ],
 });
 

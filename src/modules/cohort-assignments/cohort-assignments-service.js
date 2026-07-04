@@ -1,5 +1,7 @@
 // src/modules/cohort-assignments/cohort-assignments-service.js
+import { Op } from "sequelize";
 import { CohortAssignment, AssignmentSubmission } from "./cohort-assignments-model.js";
+import { CohortGroupMember } from "../cohort/cohort-model.js";
 
 // GET /cohort/:cohortId/assignments
 export const getAssignments = async (cohortId) => {
@@ -53,8 +55,45 @@ export const deleteAssignment = async (cohortId, assignmentId) => {
 export const gradeSubmission = async (assignmentId, body) => {
   const submission = await AssignmentSubmission.findOne({ where: { id: body.submissionId, assignment_id: assignmentId } });
   if (!submission) { const e = new Error("Submission not found"); e.statusCode = 404; throw e; }
-  await submission.update({ grade: body.grade });
+  await submission.update({
+    grade:         body.grade,
+    marks_awarded: Number(body.grade),
+  });
   return submission.toJSON();
+};
+
+export const gradeGroupAssignment = async (assignmentId, body) => {
+  const groupMembers = await CohortGroupMember.findAll({
+    where: { group_id: body.groupId }
+  });
+  const userIds = groupMembers.map((m) => m.user_id);
+
+  const submissions = await AssignmentSubmission.findAll({
+    where: {
+      assignment_id: assignmentId,
+      student_id: { [Op.in]: userIds }
+    }
+  });
+
+  if (submissions.length === 0) {
+    const e = new Error("No submissions found for this group");
+    e.statusCode = 404;
+    throw e;
+  }
+
+  for (const sub of submissions) {
+    await sub.update({
+      marks_awarded: body.marksAwarded,
+      grade:         String(body.marksAwarded),
+      feedback:      body.feedback || null,
+    });
+  }
+
+  return {
+    graded_count: submissions.length,
+    group_id: body.groupId,
+    marks_awarded: body.marksAwarded
+  };
 };
 
 export const getSubmissionStatus = async (cohortId, userId, assignmentIds = null) => {
@@ -71,11 +110,13 @@ export const getAssignmentSubmissions = async (cohortId, assignmentId) => {
   return submissions.map((s) => s.toJSON());
 };
 
-export const submitAssignment = async (cohortId, assignmentId, student) => {
+export const submitAssignment = async (cohortId, assignmentId, student, body = {}) => {
   const [submission, created] = await AssignmentSubmission.findOrCreate({
     where: { assignment_id: assignmentId, student_id: student.id },
     defaults: {
       student_name: student.name,
+      link:         body.link || null,
+      note:         body.note || null,
       submitted_at: new Date(),
     },
   });

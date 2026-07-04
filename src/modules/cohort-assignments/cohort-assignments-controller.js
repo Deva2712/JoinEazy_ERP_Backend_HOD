@@ -16,7 +16,7 @@ export const getSubmissionStatus = asyncHandler(async (req, res) => {
 });
 
 export const gradeGroupAssignment = asyncHandler(async (req, res) => {
-  res.json({ success: true, data: await svc.gradeAssignment(req.params.assignmentId, req.body) });
+  res.json({ success: true, data: await svc.gradeGroupAssignment(req.params.assignmentId, req.body) });
 });
 export const getSubmissions = asyncHandler(async (req, res) => {
   const { cohortId, assignmentId } = req.params;
@@ -27,7 +27,7 @@ export const getSubmissions = asyncHandler(async (req, res) => {
 export const markSubmitted = asyncHandler(async (req, res) => {
   const { cohortId, assignmentId } = req.params;
   const student = { id: req.user.id, name: req.user.name };
-  const data = await svc.submitAssignment(cohortId, assignmentId, student);
+  const data = await svc.submitAssignment(cohortId, assignmentId, student, req.body);
   res.json({ success: true, data });
 });
 

@@ -2,6 +2,8 @@
 
 import { Op } from "sequelize";
 import { AttendanceLog, AttendanceRecord } from "./cohort-attendance-model.js";
+import { Cohort } from "../cohort/cohort-model.js";
+import CohortMember from "../cohort-members/cohort-members-model.js";
 
 // ─── GET /attendance/logs/:cohortId ──────────────────────────────────────────
 export const getAttendanceLogs = async (cohortId) => {
@@ -11,7 +13,7 @@ export const getAttendanceLogs = async (cohortId) => {
     order: [["date", "DESC"]],
   });
 
-  const logsMap = {};
+  const logsMap = { "A": {} };
   let isFinal = false;
   const todayStr = new Date().toISOString().split("T")[0];
 
@@ -19,20 +21,27 @@ export const getAttendanceLogs = async (cohortId) => {
     const presentIds = log.records
       .filter((r) => r.is_present)
       .map((r) => r.student_id);
-    logsMap[log.date] = presentIds;
+    logsMap["A"][log.date] = presentIds;
 
     if (log.date === todayStr && log.status === "final") {
       isFinal = true;
     }
   });
 
-  const studentMap = new Map();
+  // Query CohortMember where cohort_id = cohortId AND role = "student"
+  const members = await CohortMember.findAll({
+    where: {
+      cohort_id: cohortId,
+      role: "student",
+    },
+  });
+
+  // Collect existing rollNumber and department from past records for enrichment
+  const recordDetailsMap = new Map();
   logs.forEach((log) => {
     log.records.forEach((r) => {
-      if (!studentMap.has(r.student_id)) {
-        studentMap.set(r.student_id, {
-          id:         r.student_id,
-          name:       r.student_name,
+      if (r.roll_number || r.department) {
+        recordDetailsMap.set(r.student_id, {
           rollNumber: r.roll_number,
           department: r.department,
         });
@@ -40,10 +49,22 @@ export const getAttendanceLogs = async (cohortId) => {
     });
   });
 
+  // Map each member to: { id, name, rollNumber, department, section: "A" }
+  const students = members.map((member) => {
+    const enriched = recordDetailsMap.get(member.user_id) || {};
+    return {
+      id:         member.user_id,
+      name:       member.name,
+      rollNumber: enriched.rollNumber || "",
+      department: enriched.department || member.department || null,
+      section:    "A",
+    };
+  });
+
   return {
     status: "success",
     data: {
-      students: Array.from(studentMap.values()),
+      students,
       logs:     logsMap,
       isFinal,
     },
@@ -80,16 +101,19 @@ export const markAttendance = async (courseId, data, professor, cohortId) => {
 
   // FIX: Fetch all known students for this cohort from past attendance records
   // This avoids needing frontend to send allStudents in body
-  const existingRecords = await AttendanceRecord.findAll({
-    include: [{
-      model: AttendanceLog,
-      as: "log",
-      where: { cohort_id: cohortId },
-      attributes: [],
-    }],
-    attributes: ["student_id", "student_name", "roll_number", "department"],
-    group: ["student_id", "student_name", "roll_number", "department"],
+  const logs = await AttendanceLog.findAll({
+    where: { cohort_id: cohortId },
+    attributes: ["id"],
   });
+  const logIds = logs.map((l) => l.id);
+
+  const existingRecords = logIds.length > 0
+    ? await AttendanceRecord.findAll({
+        where: { log_id: { [Op.in]: logIds } },
+        attributes: ["student_id", "student_name", "roll_number", "department"],
+        group: ["student_id", "student_name", "roll_number", "department"],
+      })
+    : [];
 
   // Also include any new presentIds that may not be in past records
   const knownStudentMap = new Map();
@@ -107,18 +131,29 @@ export const markAttendance = async (courseId, data, professor, cohortId) => {
     ? Array.from(knownStudentMap.values())
     : presentIds.map((id) => ({ id, name: "Unknown", roll_number: null, department: null }));
 
-  // Upsert log — if today's log already exists, update it
-  const [log] = await AttendanceLog.upsert(
-    {
-      cohort_id:      cohortId,
-      course_id:      courseId,
-      professor_id:   professor.id,
+  // Check if a log already exists for this course and date
+  const existingLog = await AttendanceLog.findOne({
+    where: { course_id: courseId, date }
+  });
+
+  let log;
+  if (existingLog) {
+    await existingLog.update({
+      professor_id: professor.id,
+      professor_name: professor.name,
+      status,
+    });
+    log = existingLog;
+  } else {
+    log = await AttendanceLog.create({
+      cohort_id: cohortId,
+      course_id: courseId,
+      professor_id: professor.id,
       professor_name: professor.name,
       date,
       status,
-    },
-    { conflictFields: ["course_id", "date"] }
-  );
+    });
+  }
 
   // Delete and recreate records — cleanest approach
   await AttendanceRecord.destroy({ where: { log_id: log.id } });

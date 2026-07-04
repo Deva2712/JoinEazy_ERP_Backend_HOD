@@ -1,3 +1,4 @@
+import { Op } from "sequelize";
 import { ResourceWeek, CohortResource } from "./cohort-resources-model.js";
 
 // ─── Helper: format week with frontend expected fields 
@@ -61,8 +62,12 @@ export const updateWeek = async (cohortId, weekId, data) => {
     dateRange: data.dateRange ?? week.dateRange,
     order:     data.order     ?? week.order,
   });
-  const index = await ResourceWeek.count({ where: { cohort_id: cohortId, order: { $lt: week.order } } });
-  return fmtWeek(week, index);
+  const index = await ResourceWeek.count({ where: { cohort_id: cohortId, order: { [Op.lt]: week.order } } });
+  const refetchedWeek = await ResourceWeek.findOne({
+    where: { id: weekId, cohort_id: cohortId },
+    include: [{ model: CohortResource, as: "resources", order: [["order", "ASC"]] }],
+  });
+  return fmtWeek(refetchedWeek, index);
 };
 
 // ─── DELETE week ──────────────────────────────────────────────────────────────

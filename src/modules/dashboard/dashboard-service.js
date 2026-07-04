@@ -61,6 +61,20 @@ export const getHODDashboardOverview = async (userId) => {
           created_at: json.created_at || json.createdAt,
           member_count,
           assignment_count,
+          course_codes: json.course_codes
+            ? (Array.isArray(json.course_codes) 
+                ? json.course_codes 
+                : [json.course_codes])
+            : ["N/A"],
+          sections: [
+            {
+              name: "A",
+              code: (Array.isArray(json.course_codes) 
+                ? json.course_codes[0] 
+                : json.course_codes) || "N/A",
+              department: null
+            }
+          ],
         };
       })
     );

@@ -2,6 +2,7 @@
 
 import { asyncHandler } from "../../middleware/error.middleware.js";
 import * as service from "./cohort-attendance-service.js";
+import User from "../auth/auth-model.js";
 
 // GET /attendance/logs/:cohortId
 export const getAttendanceLogs = asyncHandler(async (req, res) => {
@@ -13,7 +14,7 @@ export const getAttendanceLogs = asyncHandler(async (req, res) => {
 // GET /professor/logs
 export const getProfessorLogs = asyncHandler(async (req, res) => {
   const result = await service.getProfessorLogs(req.user.id);
-  res.status(200).json(result);
+  res.status(200).json({ success: true, data: result });
 });
 
 // POST /courses/:courseId/attendance
@@ -24,7 +25,11 @@ export const markAttendance = asyncHandler(async (req, res) => {
  
   const cohortId = req.query.cohortId || req.body.cohortId || courseId;
 
-  const professor = { id: req.user.id, name: req.user.name };
+  const user = await User.findByPk(req.user.id, { attributes: ["id", "name"] });
+  const professor = {
+    id: req.user.id,
+    name: user?.name || "Unknown"
+  };
 
   const result = await service.markAttendance(courseId, req.body, professor, cohortId);
   res.status(200).json(result);
