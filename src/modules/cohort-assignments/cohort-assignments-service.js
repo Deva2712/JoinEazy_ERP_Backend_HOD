@@ -1,7 +1,8 @@
 // src/modules/cohort-assignments/cohort-assignments-service.js
 import { Op } from "sequelize";
 import { CohortAssignment, AssignmentSubmission } from "./cohort-assignments-model.js";
-import { CohortGroupMember } from "../cohort/cohort-model.js";
+import { CohortGroupMember, CohortGroup, CohortParticipant } from "../cohort/cohort-model.js";
+import User from "../auth/auth-model.js";
 
 // GET /cohort/:cohortId/assignments
 export const getAssignments = async (cohortId) => {
@@ -10,7 +11,13 @@ export const getAssignments = async (cohortId) => {
     include: [{ model: AssignmentSubmission, as: "submissions", attributes: ["id", "student_id", "grade", "submitted_at"] }],
     order: [["deadline", "ASC"]],
   });
-  return { assignments: rows.map((a) => a.toJSON()) };
+  const totalMembers = await CohortParticipant.count({ where: { cohort_id: String(cohortId) } });
+  const totalGroups = await CohortGroup.count({ where: { cohort_id: String(cohortId) } });
+  return {
+    assignments: rows.map((a) => a.toJSON()),
+    totalMembers,
+    totalGroups
+  };
 };
 
 // POST /cohort/:cohortId/assignments
@@ -53,46 +60,86 @@ export const deleteAssignment = async (cohortId, assignmentId) => {
 
 // POST /cohort/assignments/:assignmentId/grade
 export const gradeSubmission = async (assignmentId, body) => {
-  const submission = await AssignmentSubmission.findOne({ where: { id: body.submissionId, assignment_id: assignmentId } });
-  if (!submission) { const e = new Error("Submission not found"); e.statusCode = 404; throw e; }
+  const studentId = body.studentId || body.submissionId;
+  let submission = await AssignmentSubmission.findOne({
+    where: { student_id: studentId, assignment_id: assignmentId }
+  });
+  if (!submission) {
+    const student = await User.findByPk(studentId);
+    const studentName = student ? student.name : "Student";
+    submission = await AssignmentSubmission.create({
+      assignment_id: assignmentId,
+      student_id: studentId,
+      student_name: studentName,
+      submitted_at: new Date(),
+      link: "",
+      note: ""
+    });
+  }
+  const gradeVal = body.marksAwarded !== undefined ? body.marksAwarded : body.grade;
   await submission.update({
-    grade:         body.grade,
-    marks_awarded: Number(body.grade),
+    grade:         String(gradeVal),
+    marks_awarded: Number(gradeVal),
+    feedback:      body.comments || body.feedback || null,
   });
   return submission.toJSON();
 };
 
 export const gradeGroupAssignment = async (assignmentId, body) => {
-  const groupMembers = await CohortGroupMember.findAll({
-    where: { group_id: body.groupId }
-  });
-  const userIds = groupMembers.map((m) => m.user_id);
+  let groupId = body.groupId;
+  const assignment = await CohortAssignment.findByPk(assignmentId);
+  const cohortId = assignment ? assignment.cohort_id : null;
 
-  const submissions = await AssignmentSubmission.findAll({
-    where: {
-      assignment_id: assignmentId,
-      student_id: { [Op.in]: userIds }
+  if (!groupId && body.leaderId) {
+    const leaderGroups = await CohortGroupMember.findAll({ where: { user_id: body.leaderId } });
+    for (const lg of leaderGroups) {
+      const group = await CohortGroup.findOne({ where: { id: lg.group_id, cohort_id: cohortId } });
+      if (group) {
+        groupId = group.id;
+        break;
+      }
     }
-  });
-
-  if (submissions.length === 0) {
-    const e = new Error("No submissions found for this group");
+  }
+  if (!groupId) {
+    const e = new Error("Group not found");
     e.statusCode = 404;
     throw e;
   }
+  const groupMembers = await CohortGroupMember.findAll({
+    where: { group_id: groupId }
+  });
+  const userIds = groupMembers.map((m) => m.user_id);
+  const feedbackVal = body.comments || body.feedback || null;
+  const gradeVal = body.marksAwarded !== undefined ? body.marksAwarded : body.grade;
 
-  for (const sub of submissions) {
+  for (const userId of userIds) {
+    let sub = await AssignmentSubmission.findOne({
+      where: { assignment_id: assignmentId, student_id: userId }
+    });
+    if (!sub) {
+      const student = await User.findByPk(userId);
+      const studentName = student ? student.name : "Student";
+      sub = await AssignmentSubmission.create({
+        assignment_id: assignmentId,
+        student_id: userId,
+        student_name: studentName,
+        group_id: groupId,
+        submitted_at: new Date(),
+        link: "",
+        note: ""
+      });
+    }
     await sub.update({
-      marks_awarded: body.marksAwarded,
-      grade:         String(body.marksAwarded),
-      feedback:      body.feedback || null,
+      marks_awarded: Number(gradeVal),
+      grade:         String(gradeVal),
+      feedback:      feedbackVal,
     });
   }
 
   return {
-    graded_count: submissions.length,
-    group_id: body.groupId,
-    marks_awarded: body.marksAwarded
+    graded_count: userIds.length,
+    group_id: groupId,
+    marks_awarded: Number(gradeVal)
   };
 };
 
@@ -107,6 +154,35 @@ export const getAssignmentSubmissions = async (cohortId, assignmentId) => {
     where: { assignment_id: assignmentId },
     order: [["submitted_at", "DESC"]],
   });
+
+  const assignment = await CohortAssignment.findByPk(assignmentId);
+  if (assignment && assignment.type === "group") {
+    const enriched = [];
+    for (const sub of submissions) {
+      const subJson = sub.toJSON();
+      if (subJson.group_id) {
+        const group = await CohortGroup.findOne({
+          where: { id: subJson.group_id },
+          include: [{ model: CohortGroupMember, as: "CohortGroupMembers" }]
+        });
+        if (group) {
+          subJson.group_name = group.group_name;
+          const members = [];
+          for (const m of group.CohortGroupMembers) {
+            const student = await User.findByPk(m.user_id);
+            members.push({
+              name: student ? student.name : "Student",
+              isLeader: m.role === "leader"
+            });
+          }
+          subJson.members = members;
+        }
+      }
+      enriched.push(subJson);
+    }
+    return enriched;
+  }
+
   return submissions.map((s) => s.toJSON());
 };
 

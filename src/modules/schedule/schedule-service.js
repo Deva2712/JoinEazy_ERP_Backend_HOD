@@ -1,5 +1,6 @@
 import { Schedule, MeetingRequest } from "./schedule-model.js";
 import Student from "../department-students/department-students-model.js";
+import { notifyHod } from "../notifications/notifications-helper.js";
 
 const normalizeEntry = (e, professorId, type = "class") => ({
   professor_id: professorId,
@@ -21,23 +22,27 @@ export const getProfessorSchedule = async (professorId) => {
   }));
   const officeHours = entries.filter(e => e.type === "office_hours").map(e => e.toJSON());
 
-  const meetingsWithStudent = await Promise.all(
-    meetings.map(async (m) => {
-      const student = await Student.findByPk(m.student_id, { attributes: ["id", "user_id", "name", "roll_number"] });
-      return {
-        ...m.toJSON(),
-        student_name: student?.name || "Unknown",
-        student_email: "",
-        roll_number: student?.roll_number || "",
-      };
-    })
-  );
+  const studentIds = [...new Set(meetings.map(m => m.student_id).filter(Boolean))];
+  const students = await Student.findAll({
+    where: { id: studentIds },
+    attributes: ["id", "user_id", "name", "roll_number"],
+  });
+  const studentById = new Map(students.map(s => [s.id, s]));
+  const meetingsWithStudent = meetings.map((m) => {
+    const student = studentById.get(m.student_id);
+    return {
+      ...m.toJSON(),
+      student_name: student?.name || "Unknown",
+      student_email: "",
+      roll_number: student?.roll_number || "",
+    };
+  });
 
   return {
     schedule:          { timetable, officeHours },
     scheduledMeetings: meetingsWithStudent.filter(m => m.status === "accepted"),
-    meetingRequests:   meetingsWithStudent.filter(m => m.status === "pending"),
-    outgoingRequests:  [],
+    meetingRequests:   meetingsWithStudent.filter(m => m.status === "pending" && m.initiated_by !== "professor"),
+    outgoingRequests:  meetingsWithStudent.filter(m => m.status === "pending" && m.initiated_by === "professor"),
   };
 };
 
@@ -121,26 +126,63 @@ export const addManualEvent = async (professorId, data) => {
   return entry.toJSON();
 };
 
+const resolveStudentId = async (rawParticipantId, participantRole) => {
+  if (participantRole === "Student" && rawParticipantId) {
+    const student = await Student.findOne({ where: { roll_number: rawParticipantId } });
+    if (!student) {
+      throw new Error(`Student not found for roll number: ${rawParticipantId}`);
+    }
+    return student.id;
+  }
+  return rawParticipantId;
+};
+
 export const createDirectMeeting = async (professorId, data) => {
+  const rawParticipantId = data.studentId || data.student_id;
+  const resolvedStudentId = rawParticipantId
+    ? await resolveStudentId(rawParticipantId, data.participantRole)
+    : professorId;
   const meeting = await MeetingRequest.create({
     professor_id: professorId,
-    student_id: data.studentId || data.student_id || professorId,
+    student_id: resolvedStudentId,
     title: data.title,
     proposed_time: data.dateTime || data.proposed_time,
     status: "accepted",
+    initiated_by: "professor",
     message: data.message || data.reason || null,
   });
+
+  await notifyHod({
+    category: "MEETING",
+    title: "New Meeting Scheduled",
+    message: `A new meeting "${meeting.title}" was scheduled directly.`,
+    priority: "MEDIUM",
+    scope: "hod",
+  });
+
   return meeting.toJSON();
 };
 
 export const createOutgoingRequest = async (professorId, data) => {
+  const rawParticipantId = data.targetUserId || data.student_id;
+  const resolvedStudentId = await resolveStudentId(rawParticipantId, data.participantRole);
   const meeting = await MeetingRequest.create({
     professor_id: professorId,
-    student_id: data.targetUserId || data.student_id,
+    student_id: resolvedStudentId,
     title: data.title || data.subject,
     proposed_time: data.dateTime || data.proposed_time,
     status: "pending",
+    initiated_by: "professor",
     message: data.reason || data.message || null,
   });
+
+  await notifyHod({
+    category: "MEETING",
+    title: "New Meeting Request Sent",
+    message: `A new meeting request "${meeting.title}" was created.`,
+    priority: "MEDIUM",
+    scope: "hod",
+  });
+
   return meeting.toJSON();
 };

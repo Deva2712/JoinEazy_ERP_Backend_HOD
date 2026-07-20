@@ -59,6 +59,11 @@ const Student = sequelize.define(
       allowNull: true,
       defaultValue: 0,
     },
+    backlog_subjects: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      defaultValue: [],
+    },
   },
   {
     tableName: "students",

@@ -3,6 +3,7 @@ import { Op } from "sequelize";
 import crypto from "crypto";
 import { Cohort, CohortDetailSection, CohortGroup, CohortGroupMember, CohortParticipant } from "./cohort-model.js";
 import { CohortAssignment } from "../cohort-assignments/cohort-assignments-model.js";
+import User from "../auth/auth-model.js";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const generateSlug = (name) =>
@@ -230,11 +231,26 @@ export const createGroup = async (cohortId, data, creator) => {
     cohort_id:         cohortId,
     group_name:        data.group_name || data.name,
     group_description: data.group_description || null,
-    project_name:      data.project_name || null,
+    project_name:      data.project_name || data.projectName || null,
     max_members:       data.max_members || 4,
   });
 
-  await CohortGroupMember.create({ group_id: group.id, user_id: creator.id, email: creator.email, role: "leader" });
+  if (data.members && Array.isArray(data.members) && data.members.length > 0) {
+    for (let i = 0; i < data.members.length; i++) {
+      const studentId = data.members[i];
+      const student = await User.findByPk(studentId);
+      const role = i === 0 ? "leader" : "member";
+      await CohortGroupMember.create({
+        group_id: group.id,
+        user_id: studentId,
+        email: student ? student.email : null,
+        role: role
+      });
+    }
+  } else {
+    await CohortGroupMember.create({ group_id: group.id, user_id: creator.id, email: creator.email, role: "leader" });
+  }
+
   await Cohort.increment("group_count", { where: { id: cohortId } });
 
   return group.toJSON();

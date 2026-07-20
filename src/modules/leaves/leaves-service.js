@@ -1,3 +1,5 @@
+import LeaveApplication from "./leaves-model.js";
+
 let mockLeaveRequests = [
   {
     id: "leave-001",
@@ -58,4 +60,67 @@ export const getLeaveApplications = async () => {
       requested_at: "2026-06-23"
     }
   ];
+};
+
+export const createLeaveRequest = async (userId, data) => {
+  const leave = await LeaveApplication.create({
+    user_id: userId,
+    leave_type: data.leave_type || data.leaveType,
+    from_date: data.from_date || data.fromDate,
+    to_date: data.to_date || data.toDate,
+    reason: data.reason,
+    replacement_faculty: data.replacement_faculty || data.replacementFaculty || null,
+    status: "pending",
+  });
+  return leave;
+};
+
+export const getUserLeaveApplications = async (userId) => {
+  const applications = await LeaveApplication.findAll({
+    where: { user_id: userId },
+    order: [["created_at", "DESC"]],
+  });
+  return applications.map((app) => ({
+    id: app.id,
+    leaveType: app.leave_type,
+    fromDate: app.from_date,
+    toDate: app.to_date,
+    reason: app.reason,
+    replacementFaculty: app.replacement_faculty,
+    status: app.status,
+    appliedAt: app.createdAt,
+  }));
+};
+
+export const cancelLeaveRequest = async (id, userId) => {
+  const leave = await LeaveApplication.findOne({ where: { id, user_id: userId } });
+  if (!leave) {
+    const err = new Error("Leave request not found");
+    err.statusCode = 404;
+    throw err;
+  }
+  await leave.destroy();
+  return true;
+};
+
+export const updateLeaveRequest = async (id, userId, data) => {
+  const leave = await LeaveApplication.findOne({ where: { id, user_id: userId } });
+  if (!leave) {
+    const err = new Error("Leave request not found");
+    err.statusCode = 404;
+    throw err;
+  }
+  if (leave.status !== "pending") {
+    const err = new Error("Only pending leave requests can be updated");
+    err.statusCode = 400;
+    throw err;
+  }
+  await leave.update({
+    leave_type: data.leave_type,
+    from_date: data.from_date,
+    to_date: data.to_date,
+    reason: data.reason,
+    replacement_faculty: data.replacement_faculty,
+  });
+  return leave;
 };

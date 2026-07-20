@@ -6,6 +6,7 @@ import {
   CohortAnnouncementReply,
   AnnouncementReplyUpvote,
 } from "./cohort-announcements-model.js";
+import { notifyHod } from "../notifications/notifications-helper.js";
 // ─── Auto-archive logic ───────────────────────────────────────────────────────
 
 const _lastArchiveRun = new Map(); // cohortId → timestamp
@@ -94,6 +95,14 @@ export const createAnnouncement = async (cohortId, data, author) => {
     is_archived: false,
     is_locked: false,
     replies_count: 0,
+  });
+
+  await notifyHod({
+    category: "MEETING",
+    title: "New Announcement Posted",
+    message: `${author.name} posted a new announcement: "${data.title}"`,
+    priority: "MEDIUM",
+    scope: "department",
   });
 
   return announcement.toJSON();

@@ -22,6 +22,7 @@ const MeetingRequest = sequelize.define("MeetingRequest", {
   status: { type: DataTypes.ENUM("pending","accepted","rejected","rescheduled"), defaultValue: "pending" },
   rescheduled_time: { type: DataTypes.DATE, allowNull: true },
   message: { type: DataTypes.TEXT, allowNull: true },
+  initiated_by: { type: DataTypes.ENUM("professor","student"), defaultValue: "student", allowNull: false },
 }, { tableName: "meeting_requests", timestamps: true });
 
 export { Schedule, MeetingRequest };

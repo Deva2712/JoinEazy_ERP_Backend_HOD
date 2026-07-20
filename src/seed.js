@@ -15,12 +15,24 @@ import Notification from "./modules/notifications/notifications-model.js";
 import Approval from "./modules/approvals/approvals-model.js";
 
 // Cohort model imports
-import { Cohort, CohortParticipant } from "./modules/cohort/cohort-model.js";
+import { Cohort, CohortParticipant, CohortGroup, CohortGroupMember } from "./modules/cohort/cohort-model.js";
 import { CohortAssignment, AssignmentSubmission } from "./modules/cohort-assignments/cohort-assignments-model.js";
 import { CohortAnnouncement } from "./modules/cohort-announcements/cohort-announcements-model.js";
 import { ResourceWeek, CohortResource } from "./modules/cohort-resources/cohort-resources-model.js";
 import CohortMember from "./modules/cohort-members/cohort-members-model.js";
 import { Schedule, MeetingRequest } from "./modules/schedule/schedule-model.js";
+import ExamDuty from "./modules/exam-duties/exam-duties-model.js";
+import { LibraryBook, LibraryRequest } from "./modules/library/library-model.js";
+import { Research, ResearchApplication } from "./modules/research/research-model.js";
+import { MentorSession } from "./modules/mentoring/mentoring-model.js";
+import { LorRequest, RegistrarRequest, RegistrarProcess } from "./modules/document-request/document-request-model.js";
+import { Asset, AssetRequest } from "./modules/asset-request/asset-request-model.js";
+import MaintenanceRequest from "./modules/maintenance/maintenance-model.js";
+import { Expense } from "./modules/expenses/expenses-model.js";
+import { Advance } from "./modules/advances/advances-model.js";
+import Payroll from "./modules/payroll/payroll-model.js";
+import { CalendarEvent } from "./modules/calendar/calendar-model.js";
+import RevaluationRequest from "./modules/revaluation/revaluation-model.js";
 
 const seed = async () => {
   try {
@@ -29,6 +41,14 @@ const seed = async () => {
 
     console.log("=== STEP 1: CLEARING DATA ===");
     const modelsToClear = [
+      { name: "CalendarEvent", model: CalendarEvent },
+      { name: "AssetRequest", model: AssetRequest },
+      { name: "Asset", model: Asset },
+      { name: "MaintenanceRequest", model: MaintenanceRequest },
+      { name: "LibraryRequest", model: LibraryRequest },
+      { name: "LibraryBook", model: LibraryBook },
+      { name: "Research", model: Research },
+      { name: "ExamDuty", model: ExamDuty },
       { name: "MeetingRequest", model: MeetingRequest },
       { name: "Schedule", model: Schedule },
       { name: "AssignmentSubmission", model: AssignmentSubmission },
@@ -37,6 +57,8 @@ const seed = async () => {
       { name: "CohortResource", model: CohortResource },
       { name: "ResourceWeek", model: ResourceWeek },
       { name: "CohortMember", model: CohortMember },
+      { name: "CohortGroupMember", model: CohortGroupMember },
+      { name: "CohortGroup", model: CohortGroup },
       { name: "CohortParticipant", model: CohortParticipant },
       { name: "Cohort", model: Cohort },
       { name: "AttendanceRecord", model: AttendanceRecord },
@@ -48,6 +70,12 @@ const seed = async () => {
       { name: "GrantRequest", model: GrantRequest },
       { name: "ResearchProject", model: ResearchProject },
       { name: "Placement", model: Placement },
+      { name: "RegistrarProcess", model: RegistrarProcess },
+      { name: "LorRequest", model: LorRequest },
+      { name: "MentorSession", model: MentorSession },
+      { name: "Expense", model: Expense },
+      { name: "Advance", model: Advance },
+      { name: "Payroll", model: Payroll },
       { name: "Student", model: Student },
       { name: "Faculty", model: Faculty },
       { name: "Course", model: Course },
@@ -97,6 +125,46 @@ const seed = async () => {
       }
     });
     const userHoD = hodUser[0];
+
+    console.log("=== STEP 3B: INSERTING CALENDAR EVENTS ===");
+    await CalendarEvent.create({
+      user_id: userHoD.id,
+      title: "HOD Department Review Meeting",
+      date: "2026-07-20",
+      type: "meeting",
+      description: "Quarterly review of CSE department progress, syllabus completion, and lab upgrades.",
+      start_time: "10:00",
+      end_time: "11:30",
+      location: "CSE Seminar Hall",
+      is_all_day: false,
+      source: "personal"
+    });
+
+    await CalendarEvent.create({
+      user_id: userHoD.id,
+      title: "Semester Exam Preparation",
+      date: "2026-07-22",
+      type: "exam",
+      description: "Prepare review guidelines and set exam question papers.",
+      start_time: "14:00",
+      end_time: "16:00",
+      location: "HOD Cabin",
+      is_all_day: false,
+      source: "personal"
+    });
+
+    await CalendarEvent.create({
+      user_id: userHoD.id,
+      title: "Personal Research Review",
+      date: "2026-07-25",
+      type: "personal",
+      description: "Review progress on personal AI research paper drafts.",
+      start_time: "09:00",
+      end_time: "10:30",
+      location: "Home",
+      is_all_day: false,
+      source: "personal"
+    });
 
     console.log("=== STEP 4: INSERTING FACULTY ROWS ===");
     const facultyMenon = await Faculty.create({
@@ -203,7 +271,10 @@ const seed = async () => {
     const studentDataList = [
       // Batch 2021-2025
       { name: "Rohan Verma", roll_number: "ST21BTECH11001", email: "rohan.verma@mahindra.university.edu", batch: "2021-2025", section: "CSE-A", semester: 7, cgpa: 8.4, attendance_percentage: 91, backlogs: 0 },
-      { name: "Sneha Kapoor", roll_number: "ST21BTECH11002", email: "sneha.kapoor@mahindra.university.edu", batch: "2021-2025", section: "CSE-A", semester: 7, cgpa: 7.1, attendance_percentage: 68, backlogs: 2 },
+      { name: "Sneha Kapoor", roll_number: "ST21BTECH11002", email: "sneha.kapoor@mahindra.university.edu", batch: "2021-2025", section: "CSE-A", semester: 7, cgpa: 7.1, attendance_percentage: 68, backlogs: 2, backlog_subjects: [
+        { name: "Mathematics III", subject: "Mathematics III", code: "MA201", semester: 3, attempts: 1, status: "Pending Clearance" },
+        { name: "Data Structures", subject: "Data Structures", code: "CS201", semester: 3, attempts: 2, status: "Pending Clearance" }
+      ] },
       { name: "Aditya Sharma", roll_number: "ST21BTECH11003", email: "aditya.sharma@mahindra.university.edu", batch: "2021-2025", section: "CSE-A", semester: 7, cgpa: 9.1, attendance_percentage: 95, backlogs: 0 },
       { name: "Priya Nambiar", roll_number: "ST21BTECH11004", email: "priya.nambiar@mahindra.university.edu", batch: "2021-2025", section: "CSE-B", semester: 7, cgpa: 6.8, attendance_percentage: 72, backlogs: 1 },
       { name: "Karan Singh", roll_number: "ST21BTECH11005", email: "karan.singh@mahindra.university.edu", batch: "2021-2025", section: "CSE-B", semester: 7, cgpa: 8.9, attendance_percentage: 88, backlogs: 0 },
@@ -363,7 +434,72 @@ const seed = async () => {
     await Approval.create({ type: "finance", status: "Approved", requested_by: "Dr. Meera Iyer", title: "Database Licensing Renewal", amount: 45000, category: "Software", requested_at: now });
     await Approval.create({ type: "course", status: "Pending", requested_by: "Dr. Priya Sharma", title: "CS401 Curriculum Revision", change_type: "Syllabus", requested_at: now });
 
-    console.log("=== STEP 16: INSERTING COHORTS ===");
+    console.log("=== STEP 16: INSERTING MENTORING & DOCUMENT REQUESTS ===");
+    const lor1 = await LorRequest.create({
+      student_id: students[0].user_id,
+      professor_id: facultyMenon.user_id,
+      purpose: "PhD Application to IIT Bombay",
+      university: "IIT Bombay",
+      deadline: "2026-08-15",
+      status: "pending"
+    });
+
+    const lor2 = await LorRequest.create({
+      student_id: students[2].user_id,
+      professor_id: facultyKrishnan.user_id,
+      purpose: "Masters Application to NUS Singapore",
+      university: "National University of Singapore",
+      deadline: "2026-07-30",
+      status: "Under Review"
+    });
+
+    const lor3 = await LorRequest.create({
+      student_id: students[4].user_id,
+      professor_id: facultyMenon.user_id,
+      purpose: "Job Application at Google",
+      university: null,
+      deadline: "2026-07-20",
+      status: "pending"
+    });
+
+    await RegistrarProcess.create({
+      lor_id: "LOR-PROC-1001",
+      original_request_id: lor2.id,
+      student_name: students[2].name,
+      roll_number: students[2].roll_number,
+      note_to_registrar: "Please process urgently for NUS application",
+      status: "Pending",
+      sent_date: "2026-07-10"
+    });
+
+    await MentorSession.create({
+      mentor_id: facultyMenon.user_id,
+      mentee_id: students[0].user_id,
+      title: "Semester Progress Review",
+      scheduled_at: "2026-06-20T10:00:00Z",
+      status: "completed",
+      notes: "Student performing well. Suggested focusing on ML electives."
+    });
+
+    await MentorSession.create({
+      mentor_id: facultyMenon.user_id,
+      mentee_id: students[1].user_id,
+      title: "Attendance and Backlog Discussion",
+      scheduled_at: "2026-06-25T11:00:00Z",
+      status: "pending",
+      notes: "Needs improvement in attendance and clearing backlogs."
+    });
+
+    await MentorSession.create({
+      mentor_id: userHoD.id,
+      mentee_id: students[3].user_id,
+      title: "Backlog Clearance Counseling",
+      scheduled_at: "2026-07-22T14:30:00Z",
+      status: "pending",
+      notes: "Advisory session to discuss strategy for clearing backlogs."
+    });
+
+    console.log("=== STEP 17: INSERTING COHORTS ===");
 
     // Cohort 1 — Active cohort taught by HoD
     const cohort1 = await Cohort.create({
@@ -436,6 +572,49 @@ const seed = async () => {
       is_active: true
     });
 
+    // Seed groups for cohort1
+    const group1 = await CohortGroup.create({
+      cohort_id: cohort1.id,
+      group_name: "Team Alpha",
+      group_description: "Alpha team working on the AI project",
+      project_name: "AI Project Alpha",
+      max_members: 4,
+    });
+    await CohortGroupMember.create({
+      group_id: group1.id,
+      user_id: students[0].user_id,
+      email: students[0].email,
+      role: "leader"
+    });
+    await CohortGroupMember.create({
+      group_id: group1.id,
+      user_id: students[1].user_id,
+      email: students[1].email,
+      role: "member"
+    });
+
+    const group2 = await CohortGroup.create({
+      cohort_id: cohort1.id,
+      group_name: "Team Beta",
+      group_description: "Beta team working on the AI project",
+      project_name: "AI Project Beta",
+      max_members: 4,
+    });
+    await CohortGroupMember.create({
+      group_id: group2.id,
+      user_id: students[2].user_id,
+      email: students[2].email,
+      role: "leader"
+    });
+    await CohortGroupMember.create({
+      group_id: group2.id,
+      user_id: students[3].user_id,
+      email: students[3].email,
+      role: "member"
+    });
+    
+    await cohort1.increment("group_count", { by: 2 });
+
     // Add students as CohortParticipants for cohort2
     await CohortParticipant.create({
       cohort_id: cohort2.id,
@@ -496,8 +675,33 @@ const seed = async () => {
       department: "Computer Science"
     });
 
+    await CohortMember.create({
+      cohort_id: cohort2.id,
+      user_id: students[4].user_id,
+      name: students[4].name,
+      email: students[4].email,
+      role: "student",
+      department: "Computer Science"
+    });
+    await CohortMember.create({
+      cohort_id: cohort2.id,
+      user_id: students[5].user_id,
+      name: students[5].name,
+      email: students[5].email,
+      role: "student",
+      department: "Computer Science"
+    });
+    await CohortMember.create({
+      cohort_id: cohort2.id,
+      user_id: students[6].user_id,
+      name: students[6].name,
+      email: students[6].email,
+      role: "student",
+      department: "Computer Science"
+    });
+
     // Add assignments for cohort1
-    await CohortAssignment.create({
+    const assignment1 = await CohortAssignment.create({
       cohort_id: cohort1.id,
       title: "Assignment 1 — Search Algorithms",
       description: "Implement BFS, DFS and A* search algorithms and compare their performance on a maze problem.",
@@ -523,6 +727,24 @@ const seed = async () => {
       marks: "50",
       type: "group",
       created_by: userHoD.id
+    });
+
+    // Add seed data: 2 submissions for Assignment 1 in cohort1
+    await AssignmentSubmission.create({
+      assignment_id: assignment1.id,
+      student_id: students[0].user_id,
+      student_name: students[0].name,
+      link: "https://github.com/student0/search-algorithms",
+      note: "Completed BFS and DFS implementation.",
+      submitted_at: new Date()
+    });
+    await AssignmentSubmission.create({
+      assignment_id: assignment1.id,
+      student_id: students[2].user_id,
+      student_name: students[2].name,
+      link: "https://github.com/student2/search-algorithms",
+      note: "Maze solver works perfectly.",
+      submitted_at: new Date()
     });
 
     // Add announcements for cohort1
@@ -594,7 +816,7 @@ const seed = async () => {
       order: 1
     });
 
-    console.log("=== STEP 17: INSERTING SCHEDULE & MEETINGS ===");
+    console.log("=== STEP 18: INSERTING SCHEDULE & MEETINGS ===");
 
     // HoD's weekly timetable
     await Schedule.create({
@@ -668,6 +890,25 @@ const seed = async () => {
       type: "office_hours"
     });
 
+    await ExamDuty.create({
+      professor_id: userHoD.id,
+      subject: "Introduction to Artificial Intelligence (CS601)",
+      date: "2026-07-15",
+      start_time: "09:00",
+      end_time: "12:00",
+      venue: "LH-101",
+      status: "pending"
+    });
+    await ExamDuty.create({
+      professor_id: userHoD.id,
+      subject: "Advanced Machine Learning (CS602)",
+      date: "2026-07-18",
+      start_time: "14:00",
+      end_time: "17:00",
+      venue: "LH-202",
+      status: "accepted"
+    });
+
     // Meeting requests
     await MeetingRequest.create({
       professor_id: userHoD.id,
@@ -692,6 +933,388 @@ const seed = async () => {
       proposed_time: new Date("2026-07-10T11:00:00.000Z"),
       status: "pending",
       message: "Seeking guidance on research internship opportunities."
+    });
+    await MeetingRequest.create({
+      professor_id: userHoD.id,
+      student_id: students[3].id,
+      title: "Thesis Topic Finalisation",
+      proposed_time: new Date("2026-07-20T10:00:00.000Z"),
+      status: "pending",
+      initiated_by: "student",
+      message: "I would like to finalise my B.Tech thesis topic and need your approval before proceeding."
+    });
+    await MeetingRequest.create({
+      professor_id: userHoD.id,
+      student_id: students[4].id,
+      title: "Mid-Semester Performance Review",
+      proposed_time: new Date("2026-07-24T14:00:00.000Z"),
+      status: "pending",
+      initiated_by: "student",
+      message: "Requesting a meeting to discuss my mid-semester performance and areas I can improve on."
+    });
+
+    await MeetingRequest.create({
+      professor_id: userHoD.id,
+      student_id: students[3].id,
+      title: "Thesis Topic Finalisation",
+      proposed_time: new Date("2026-07-22T14:30:00.000Z"),
+      status: "pending",
+      initiated_by: "student",
+      message: "I would like to discuss and finalise my B.Tech thesis topic and need your approval."
+    });
+
+    console.log("=== STEP 19: INSERTING LIBRARY SEED DATA ===");
+    const book1 = await LibraryBook.create({
+      title: "Deep Learning",
+      author: "Ian Goodfellow",
+      isbn: "978-0262035613",
+      category: "Computer Science",
+      total_copies: 5,
+      available_copies: 4
+    });
+
+    const book2 = await LibraryBook.create({
+      title: "Clean Code",
+      author: "Robert Martin",
+      isbn: "978-0132350884",
+      category: "Software Engineering",
+      total_copies: 3,
+      available_copies: 2
+    });
+
+    const book3 = await LibraryBook.create({
+      title: "Designing Data-Intensive Applications",
+      author: "Martin Kleppmann",
+      isbn: "978-1449373320",
+      category: "System Design",
+      total_copies: 4,
+      available_copies: 4
+    });
+
+    // 2 borrowed books for HoD
+    await LibraryRequest.create({
+      user_id: userHoD.id,
+      user_name: userHoD.name,
+      book_id: book1.id,
+      book_title: book1.title,
+      author: book1.author,
+      isbn: book1.isbn,
+      category: book1.category,
+      status: "approved",
+      approved_date: "2026-07-06",
+      due_date: "2026-07-20",
+      physical_copy_picked_up: true
+    });
+
+    await LibraryRequest.create({
+      user_id: userHoD.id,
+      user_name: userHoD.name,
+      book_id: book2.id,
+      book_title: book2.title,
+      author: book2.author,
+      isbn: book2.isbn,
+      category: book2.category,
+      status: "approved",
+      approved_date: "2026-07-11",
+      due_date: "2026-07-25",
+      physical_copy_picked_up: true
+    });
+
+    // 1 pending book request
+    await LibraryRequest.create({
+      user_id: userHoD.id,
+      user_name: userHoD.name,
+      book_id: book3.id,
+      book_title: book3.title,
+      author: book3.author,
+      isbn: book3.isbn,
+      category: book3.category,
+      status: "pending",
+      request_date: "2026-07-10"
+    });
+
+    console.log("=== STEP 20: INSERTING RESEARCH SEED DATA ===");
+    const eduAnalyticsProj = await Research.create({
+      title: "AI for Educational Analytics",
+      description: "Using ML to predict student performance",
+      status: "active",
+      created_by: userHoD.id,
+      type: "research"
+    });
+
+    await Research.create({
+      title: "Optimizing Transformer Models for Low-Resource Edge Devices",
+      description: "A study on deploying compressed NLP architectures on resource-constrained embedded systems.",
+      type: "publication",
+      status: "completed",
+      journal_details: "IEEE Transactions on Computers, Vol. 74, 2026",
+      doi: "10.1109/TC.2026.0001",
+      link: "https://ieeexplore.ieee.org/document/9999999",
+      funding_details: "DST Cognitive Computing Grant #8874",
+      tags: ["Deep Learning", "Model Compression", "Edge Computing"],
+      start_date: "2026-01-15",
+      created_by: userHoD.id
+    });
+
+    await ResearchApplication.create({
+      research_id: eduAnalyticsProj.id,
+      applicant_id: students[2].user_id,
+      role_title: "Research Assistant",
+      status: "pending",
+      message: "I am highly interested in neural nets and educational analytics, and have completed relevant coursework in ML."
+    });
+
+    await GrantRequest.create({
+      research_project_id: eduAnalyticsProj.id,
+      title: "AI for Educational Analytics - Infrastructure & Compute Grant",
+      status: "Pending",
+      amount_inr: 150000,
+      justification: "Compute resources for training deep models and cloud hosting for performance analysis.",
+      requested_at: "2026-07-15"
+    });
+
+    console.log("=== STEP 21: INSERTING ASSETS, ASSET REQUESTS & MAINTENANCE DATA ===");
+    const asset1 = await Asset.create({ name: "Projector - Epson", type: "Equipment", status: "available" });
+    const asset2 = await Asset.create({ name: "Room 101", type: "Class Room", status: "available", capacity: 40, location: "Block A" });
+    const asset3 = await Asset.create({ name: "Laptop - Dell Latitude", type: "Equipment", status: "available" });
+    const asset4 = await Asset.create({ name: "Conference Room", type: "Class Room", status: "available", capacity: 20, location: "Admin Block" });
+
+    const asset5 = await Asset.create({ name: "Advanced AI Lab", type: "Lab", status: "available", capacity: 30, location: "Block B - Room 202" });
+    const asset6 = await Asset.create({ name: "Cybersecurity Lab", type: "Lab", status: "available", capacity: 25, location: "Block B - Room 204" });
+    const asset7 = await Asset.create({ name: "Main Auditorium", type: "Seminar Hall", status: "available", capacity: 150, location: "Admin Block" });
+    const asset8 = await Asset.create({ name: "Seminar Room 1", type: "Seminar Hall", status: "available", capacity: 60, location: "Block C" });
+    const asset9 = await Asset.create({ name: "Executive Guest House Room 1", type: "Accommodation", status: "available", location: "Guest House" });
+    const asset10 = await Asset.create({ name: "Executive Guest House Room 2", type: "Accommodation", status: "available", location: "Guest House" });
+
+    await AssetRequest.create({
+      requester_id: userMenon.id,
+      requester_name: "Dr. Rajesh Menon",
+      asset_id: asset1.id,
+      asset_name: "Projector - Epson",
+      type: "Equipment",
+      date: "2026-07-15",
+      start_time: "09:00",
+      end_time: "11:00",
+      course: "CS401",
+      reason: "Guest lecture on Deep Learning",
+      status: "Pending",
+      posted_at: new Date()
+    });
+
+    await AssetRequest.create({
+      requester_id: userKrishnan.id,
+      requester_name: "Dr. Ananya Krishnan",
+      asset_id: asset2.id,
+      asset_name: "Room 101",
+      type: "Class Room",
+      date: "2026-07-18",
+      start_time: "14:00",
+      end_time: "16:00",
+      course: "CS201",
+      reason: "Extra class for semester exam preparation",
+      status: "Approved",
+      posted_at: new Date()
+    });
+
+    await AssetRequest.create({
+      requester_id: userSharma.id,
+      requester_name: "Dr. Priya Sharma",
+      asset_id: asset3.id,
+      asset_name: "Laptop - Dell Latitude",
+      type: "Equipment",
+      date: "2026-07-20",
+      start_time: "10:00",
+      end_time: "13:00",
+      course: "CS501",
+      reason: "Database lab demo session",
+      status: "Rejected",
+      rejection_reason: "Asset already booked for that slot",
+      posted_at: new Date()
+    });
+
+    await MaintenanceRequest.create({
+      requester_id: userMenon.id,
+      requester_name: "Dr. Rajesh Menon",
+      category: "university",
+      location: "Block A - Room 101",
+      title: "AC Not Working",
+      description: "AC in Room 101 has stopped cooling",
+      priority: "high",
+      status: "pending"
+    });
+
+    await MaintenanceRequest.create({
+      requester_id: userNair.id,
+      requester_name: "Dr. Vikram Nair",
+      category: "university",
+      location: "Block C - CS Lab",
+      title: "WiFi Not Working",
+      description: "WiFi router in CS Lab is down since morning",
+      priority: "urgent",
+      status: "in-progress"
+    });
+
+    await MaintenanceRequest.create({
+      requester_id: userSharma.id,
+      requester_name: "Dr. Priya Sharma",
+      category: "accommodation",
+      location: "Guest House Room 1",
+      title: "Tap Leakage",
+      description: "Bathroom tap is leaking continuously",
+      priority: "medium",
+      status: "resolved"
+    });
+
+    console.log("=== STEP 22: INSERTING EXPENSES, ADVANCES & PAYROLL DATA ===");
+    await Expense.create({
+      submitted_by: userMenon.id,
+      submitted_name: "Dr. Rajesh Menon",
+      title: "Conference Registration - ICML 2026",
+      category: "Conference",
+      amount_spent: 15000,
+      description: "Registration fee for ICML 2026 conference in Vienna",
+      status: "Approved"
+    });
+
+    await Expense.create({
+      submitted_by: userKrishnan.id,
+      submitted_name: "Dr. Ananya Krishnan",
+      title: "Research Lab Equipment",
+      category: "Equipment",
+      amount_spent: 8500,
+      description: "Purchased GPU memory module for data science lab",
+      status: "Pending"
+    });
+
+    await Expense.create({
+      submitted_by: userSharma.id,
+      submitted_name: "Dr. Priya Sharma",
+      title: "Travel Reimbursement - Workshop",
+      category: "Travel",
+      amount_spent: 4200,
+      description: "Travel expenses for cybersecurity workshop in Bangalore",
+      status: "Rejected",
+      admin_comments: "Receipt not attached"
+    });
+
+    await Advance.create({
+      submitted_by: userMenon.id,
+      submitted_name: "Dr. Rajesh Menon",
+      title: "Research Field Trip Advance",
+      category: "Research",
+      amount_requested: 25000,
+      description: "Advance required for upcoming field data collection trip",
+      status: "Approved"
+    });
+
+    await Advance.create({
+      submitted_by: userBose.id,
+      submitted_name: "Dr. Arjun Bose",
+      title: "Conference Advance - ICCV 2026",
+      category: "Conference",
+      amount_requested: 18000,
+      description: "Advance for registration and accommodation at ICCV 2026",
+      status: "Pending"
+    });
+
+    await Payroll.create({
+      user_id: userMenon.id,
+      month: "April",
+      year: 2026,
+      basic: 85000,
+      hra: 34000,
+      da: 8500,
+      ta: 5000,
+      other_allowances: 2000,
+      pf_deduction: 10200,
+      tax_deduction: 8500,
+      other_deductions: 0,
+      net_salary: 115800,
+      status: "paid"
+    });
+
+    await Payroll.create({
+      user_id: userMenon.id,
+      month: "May",
+      year: 2026,
+      basic: 85000,
+      hra: 34000,
+      da: 8500,
+      ta: 5000,
+      other_allowances: 2000,
+      pf_deduction: 10200,
+      tax_deduction: 8500,
+      other_deductions: 0,
+      net_salary: 115800,
+      status: "paid"
+    });
+
+    await Payroll.create({
+      user_id: userMenon.id,
+      month: "June",
+      year: 2026,
+      basic: 85000,
+      hra: 34000,
+      da: 8500,
+      ta: 5000,
+      other_allowances: 2000,
+      pf_deduction: 10200,
+      tax_deduction: 8500,
+      other_deductions: 0,
+      net_salary: 115800,
+      status: "processing"
+    });
+
+    console.log("=== STEP 16: INSERTING REVALUATION REQUESTS ===");
+    try {
+      await RevaluationRequest.destroy({ where: {}, force: true });
+    } catch (err) {
+      console.warn("Could not clear revaluation_requests table:", err.message);
+    }
+    await RevaluationRequest.create({
+      student_id: students[0].user_id,
+      professor_id: userHoD.id,
+      subject_code: "CS201",
+      subject_name: "Data Structures and Algorithms",
+      semester: "Semester 5",
+      exam_type: "End Term",
+      priority: "High",
+      reason: "I believe my answer for Q4(b) was marked incorrectly. The approach used is an alternate valid solution.",
+      original_marks: 38,
+      max_marks: 50,
+      original_grade: "B",
+      status: "Pending",
+    });
+    await RevaluationRequest.create({
+      student_id: students[1].user_id,
+      professor_id: userHoD.id,
+      subject_code: "CS501",
+      subject_name: "Database Management Systems",
+      semester: "Semester 5",
+      exam_type: "End Term",
+      priority: "Mid",
+      reason: "My ER diagram in Q2 was marked 0 but it correctly represents the given schema.",
+      original_marks: 41,
+      max_marks: 50,
+      original_grade: "B+",
+      status: "UnderReview",
+    });
+    await RevaluationRequest.create({
+      student_id: students[2].user_id,
+      professor_id: userHoD.id,
+      subject_code: "CS201",
+      subject_name: "Data Structures and Algorithms",
+      semester: "Semester 5",
+      exam_type: "End Term",
+      priority: "High",
+      reason: "The dynamic programming solution in Q5 is correct but received no marks.",
+      original_marks: 35,
+      max_marks: 50,
+      original_grade: "C",
+      revised_marks: 43,
+      revised_grade: "A",
+      professor_remarks: "Upon re-evaluation, alternate DP approach is accepted. Revised marks awarded.",
+      status: "Approved",
     });
 
     console.log("=== SEED COMPLETE (INCLUDING COHORTS) ===");

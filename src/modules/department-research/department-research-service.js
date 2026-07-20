@@ -2,6 +2,7 @@ import ResearchProject from "./research-project-model.js";
 import GrantRequest from "./grant-request-model.js";
 import ResearchExpense from "./research-expense-model.js";
 import ResearchAllocation from "./research-allocation-model.js";
+import { notifyHod } from "../notifications/notifications-helper.js";
 
 export const getAllResearch = async () => {
   const projects = await ResearchProject.findAll();
@@ -161,5 +162,12 @@ export const approveGrant = async (id, decision) => {
   }
   
   await grant.save();
+  await notifyHod({
+    category: "RESEARCH",
+    title: decision === "approve" ? "Grant Request Approved" : "Grant Request Rejected",
+    message: `Grant request "${grant.title}" has been ${decision === "approve" ? "approved" : "rejected"}.`,
+    priority: "HIGH",
+    scope: "hod",
+  });
   return grant;
 };
