@@ -8,7 +8,7 @@ import { CohortAssignment } from "../cohort-assignments/cohort-assignments-model
 
 export const getHODDashboardOverview = async (userId) => {
   const user = await User.findByPk(userId, {
-    attributes: ["id", "name", "email", "role", "employeeId"],
+    attributes: ["id", "name", "email", "role", "employeeId", "department", "branches"],
   });
 
   if (!user) {
@@ -91,6 +91,8 @@ export const getHODDashboardOverview = async (userId) => {
         role: user.role,
         fullName: user.name,
         employeeId: user.employeeId || "HOD-001",
+        department: user.department || null,
+        branches: Array.isArray(user.branches) ? user.branches : [],
         organization: "Mahindra University",
       },
       createdCohorts,
@@ -106,4 +108,3 @@ export const getHODDashboardOverview = async (userId) => {
     },
   };
 };
-

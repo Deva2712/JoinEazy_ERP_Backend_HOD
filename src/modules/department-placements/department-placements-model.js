@@ -33,6 +33,10 @@ const Placement = sequelize.define(
       type: DataTypes.FLOAT,
       allowNull: true,
     },
+    placed_date: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
+    },
     status: {
       type: DataTypes.STRING,
       allowNull: true,

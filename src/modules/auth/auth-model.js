@@ -49,6 +49,11 @@ const User = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    branches: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      defaultValue: [],
+    },
     designation: {
       type: DataTypes.STRING,
       allowNull: true,

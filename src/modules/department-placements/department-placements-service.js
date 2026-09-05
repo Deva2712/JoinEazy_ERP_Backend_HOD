@@ -1,5 +1,6 @@
 import Placement from "./department-placements-model.js";
 import Student from "../department-students/department-students-model.js";
+import { createJobDrive } from "../placement-hod/placement-hod-service.js";
 import { Op } from "sequelize";
 
 const getBatchForStudents = async (studentIds) => {
@@ -287,5 +288,6 @@ export const getCompanyDetails = async (id) => {
 };
 
 export const createJobOpening = async (data) => {
-  return { success: true, message: "Job opening created successfully", data };
+  const drive = await createJobDrive(data);
+  return { success: true, message: "Job opening created successfully", data: drive };
 };

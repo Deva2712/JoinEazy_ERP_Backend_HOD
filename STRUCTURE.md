@@ -233,7 +233,7 @@ cd joineazy-backend-hod
 # Start with Docker (includes PostgreSQL)
 docker-compose up --build
 
-# Backend runs on: http://10.70.23.112:6000
+# Backend runs on: http://10.70.23.112:6060
 # Database runs on: localhost:5433
 ```
 
@@ -242,11 +242,11 @@ docker-compose up --build
 ## 🔗 Integration Points
 
 ### **Frontend → HOD Backend**
-- **Base URL:** `http://10.70.23.112:6000/api/v1`
+- **Base URL:** `http://10.70.23.112:6060/api/v1`
 - **Auth:** JWT token in `Authorization: Bearer <token>` header
 - **Role Required:** `hod` or `admin`
 
-### **Professor Backend (port 5000) vs HOD Backend (port 6000)**
+### **Professor Backend (port 5000) vs HOD Backend (port 6060)**
 - **Professor:** Manages cohorts, assignments, attendance (teaching-level)
 - **HOD:** Manages departments, faculty, analytics (management-level)
 - **Shared:** Authentication system, user profiles

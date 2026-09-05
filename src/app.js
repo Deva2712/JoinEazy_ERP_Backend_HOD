@@ -13,6 +13,7 @@ import departmentCoursesRoutes from "./modules/department-courses/department-cou
 import departmentFacultyRoutes from "./modules/department-faculty/department-faculty-routes.js";
 import departmentStudentsRoutes from "./modules/department-students/department-students-routes.js";
 import departmentPlacementsRoutes from "./modules/department-placements/department-placements-routes.js";
+import placementHodRoutes from "./modules/placement-hod/placement-hod-routes.js";
 import departmentResearchRoutes from "./modules/department-research/department-research-routes.js";
 import analyticsRoutes from "./modules/analytics/analytics-routes.js";
 import reportsRoutes from "./modules/reports/reports-routes.js";
@@ -71,6 +72,7 @@ app.use("/api/v1/department/courses", departmentCoursesRoutes);
 app.use("/api/v1/department/faculty", departmentFacultyRoutes);
 app.use("/api/v1/department/students", departmentStudentsRoutes);
 app.use("/api/v1/department/placements", departmentPlacementsRoutes);
+app.use("/api/v1/placement/hod", placementHodRoutes);
 app.use("/api/v1/department/research", departmentResearchRoutes);
 app.use("/api/v1/analytics", analyticsRoutes);
 app.use("/api/v1/reports", reportsRoutes);

@@ -9,6 +9,7 @@ import { CohortAnnouncement, CohortAnnouncementReply, AnnouncementReplyUpvote } 
 import { SessionReflection, SessionDocument } from "../modules/session-planning/session-planning-model.js";
 import Bulletin from "../modules/bulletins/bulletins-model.js";
 import Student from "../modules/department-students/department-students-model.js";
+import Placement from "../modules/department-placements/department-placements-model.js";
 import RevaluationRequest from "../modules/revaluation/revaluation-model.js";
 
 
@@ -30,8 +31,9 @@ CohortAnnouncementReply.hasMany(AnnouncementReplyUpvote, { foreignKey: "reply_id
 // Student and Revaluation associations
 User.hasOne(Student, { as: "studentProfile", foreignKey: "user_id" });
 Student.belongsTo(User, { as: "user", foreignKey: "user_id" });
+Placement.belongsTo(Student, { as: "student", foreignKey: "student_id" });
+Student.hasMany(Placement, { as: "placements", foreignKey: "student_id" });
 RevaluationRequest.belongsTo(User, { as: "student", foreignKey: "student_id" });
 RevaluationRequest.belongsTo(User, { as: "professor", foreignKey: "professor_id" });
 
 export default {};
-

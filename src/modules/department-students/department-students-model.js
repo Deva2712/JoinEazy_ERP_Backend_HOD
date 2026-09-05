@@ -38,6 +38,10 @@ const Student = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    branch: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     section: {
       type: DataTypes.STRING,
       allowNull: true,

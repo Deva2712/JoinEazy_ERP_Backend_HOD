@@ -7,6 +7,7 @@ import AttendanceRecord from "./modules/department-courses/attendance-record-mod
 import Student from "./modules/department-students/department-students-model.js";
 import Faculty from "./modules/department-faculty/department-faculty-model.js";
 import Placement from "./modules/department-placements/department-placements-model.js";
+import JobDrive from "./modules/placement-hod/job-drive-model.js";
 import ResearchProject from "./modules/department-research/research-project-model.js";
 import GrantRequest from "./modules/department-research/grant-request-model.js";
 import ResearchExpense from "./modules/department-research/research-expense-model.js";
@@ -69,6 +70,7 @@ const seed = async () => {
       { name: "ResearchAllocation", model: ResearchAllocation },
       { name: "GrantRequest", model: GrantRequest },
       { name: "ResearchProject", model: ResearchProject },
+      { name: "JobDrive", model: JobDrive },
       { name: "Placement", model: Placement },
       { name: "RegistrarProcess", model: RegistrarProcess },
       { name: "LorRequest", model: LorRequest },
@@ -121,10 +123,16 @@ const seed = async () => {
         name: "Dr. Robert Aris",
         email: "robert.aris@mahindrauniversity.edu.in",
         password: "hod123",
-        role: "hod"
+        role: "hod",
+        department: "Computer Science & Engineering",
+        branches: ["CSE", "AIML", "IT"]
       }
     });
     const userHoD = hodUser[0];
+    await userHoD.update({
+      department: "Computer Science & Engineering",
+      branches: ["CSE", "AIML", "IT"]
+    });
 
     console.log("=== STEP 3B: INSERTING CALENDAR EVENTS ===");
     await CalendarEvent.create({
@@ -270,22 +278,22 @@ const seed = async () => {
     console.log("=== STEP 6: INSERTING STUDENTS ===");
     const studentDataList = [
       // Batch 2021-2025
-      { name: "Rohan Verma", roll_number: "ST21BTECH11001", email: "rohan.verma@mahindra.university.edu", batch: "2021-2025", section: "CSE-A", semester: 7, cgpa: 8.4, attendance_percentage: 91, backlogs: 0 },
-      { name: "Sneha Kapoor", roll_number: "ST21BTECH11002", email: "sneha.kapoor@mahindra.university.edu", batch: "2021-2025", section: "CSE-A", semester: 7, cgpa: 7.1, attendance_percentage: 68, backlogs: 2, backlog_subjects: [
+      { name: "Rohan Verma", roll_number: "ST21BTECH11001", email: "rohan.verma@mahindra.university.edu", batch: "2021-2025", branch: "CSE", section: "CSE-A", semester: 7, cgpa: 8.4, attendance_percentage: 91, backlogs: 0 },
+      { name: "Sneha Kapoor", roll_number: "ST21BTECH11002", email: "sneha.kapoor@mahindra.university.edu", batch: "2021-2025", branch: "CSE", section: "CSE-A", semester: 7, cgpa: 7.1, attendance_percentage: 68, backlogs: 2, backlog_subjects: [
         { name: "Mathematics III", subject: "Mathematics III", code: "MA201", semester: 3, attempts: 1, status: "Pending Clearance" },
         { name: "Data Structures", subject: "Data Structures", code: "CS201", semester: 3, attempts: 2, status: "Pending Clearance" }
       ] },
-      { name: "Aditya Sharma", roll_number: "ST21BTECH11003", email: "aditya.sharma@mahindra.university.edu", batch: "2021-2025", section: "CSE-A", semester: 7, cgpa: 9.1, attendance_percentage: 95, backlogs: 0 },
-      { name: "Priya Nambiar", roll_number: "ST21BTECH11004", email: "priya.nambiar@mahindra.university.edu", batch: "2021-2025", section: "CSE-B", semester: 7, cgpa: 6.8, attendance_percentage: 72, backlogs: 1 },
-      { name: "Karan Singh", roll_number: "ST21BTECH11005", email: "karan.singh@mahindra.university.edu", batch: "2021-2025", section: "CSE-B", semester: 7, cgpa: 8.9, attendance_percentage: 88, backlogs: 0 },
-      { name: "Divya Menon", roll_number: "ST21BTECH11006", email: "divya.menon@mahindra.university.edu", batch: "2021-2025", section: "CSE-B", semester: 7, cgpa: 7.5, attendance_percentage: 79, backlogs: 0 },
-      { name: "Rahul Gupta", roll_number: "ST21BTECH11007", email: "rahul.gupta@mahindra.university.edu", batch: "2021-2025", section: "CSE-C", semester: 7, cgpa: 7.8, attendance_percentage: 83, backlogs: 0 },
-      { name: "Anjali Desai", roll_number: "ST21BTECH11008", email: "anjali.desai@mahindra.university.edu", batch: "2021-2025", section: "CSE-C", semester: 7, cgpa: 8.2, attendance_percentage: 90, backlogs: 0 },
+      { name: "Aditya Sharma", roll_number: "ST21BTECH11003", email: "aditya.sharma@mahindra.university.edu", batch: "2021-2025", branch: "AIML", section: "CSE-A", semester: 7, cgpa: 9.1, attendance_percentage: 95, backlogs: 0 },
+      { name: "Priya Nambiar", roll_number: "ST21BTECH11004", email: "priya.nambiar@mahindra.university.edu", batch: "2021-2025", branch: "AIML", section: "CSE-B", semester: 7, cgpa: 6.8, attendance_percentage: 72, backlogs: 1 },
+      { name: "Karan Singh", roll_number: "ST21BTECH11005", email: "karan.singh@mahindra.university.edu", batch: "2021-2025", branch: "IT", section: "CSE-B", semester: 7, cgpa: 8.9, attendance_percentage: 88, backlogs: 0 },
+      { name: "Divya Menon", roll_number: "ST21BTECH11006", email: "divya.menon@mahindra.university.edu", batch: "2021-2025", branch: "IT", section: "CSE-B", semester: 7, cgpa: 7.5, attendance_percentage: 79, backlogs: 0 },
+      { name: "Rahul Gupta", roll_number: "ST21BTECH11007", email: "rahul.gupta@mahindra.university.edu", batch: "2021-2025", branch: "CSE", section: "CSE-C", semester: 7, cgpa: 7.8, attendance_percentage: 83, backlogs: 0 },
+      { name: "Anjali Desai", roll_number: "ST21BTECH11008", email: "anjali.desai@mahindra.university.edu", batch: "2021-2025", branch: "AIML", section: "CSE-C", semester: 7, cgpa: 8.2, attendance_percentage: 90, backlogs: 0 },
       // Batch 2022-2026
-      { name: "Aryan Mehta", roll_number: "ST22BTECH10001", email: "aryan.mehta@mahindra.university.edu", batch: "2022-2026", section: "CSE-A", semester: 5, cgpa: 8.7, attendance_percentage: 93, backlogs: 0 },
-      { name: "Ishaan Pillai", roll_number: "ST22BTECH10002", email: "ishaan.pillai@mahindra.university.edu", batch: "2022-2026", section: "CSE-A", semester: 5, cgpa: 7.3, attendance_percentage: 75, backlogs: 1 },
-      { name: "Kavya Reddy", roll_number: "ST22BTECH10003", email: "kavya.reddy@mahindra.university.edu", batch: "2022-2026", section: "CSE-B", semester: 5, cgpa: 9.0, attendance_percentage: 96, backlogs: 0 },
-      { name: "Nikhil Joshi", roll_number: "ST22BTECH10004", email: "nikhil.joshi@mahindra.university.edu", batch: "2022-2026", section: "CSE-B", semester: 5, cgpa: 7.6, attendance_percentage: 81, backlogs: 0 }
+      { name: "Aryan Mehta", roll_number: "ST22BTECH10001", email: "aryan.mehta@mahindra.university.edu", batch: "2022-2026", branch: "CSE", section: "CSE-A", semester: 5, cgpa: 8.7, attendance_percentage: 93, backlogs: 0 },
+      { name: "Ishaan Pillai", roll_number: "ST22BTECH10002", email: "ishaan.pillai@mahindra.university.edu", batch: "2022-2026", branch: "IT", section: "CSE-A", semester: 5, cgpa: 7.3, attendance_percentage: 75, backlogs: 1 },
+      { name: "Kavya Reddy", roll_number: "ST22BTECH10003", email: "kavya.reddy@mahindra.university.edu", batch: "2022-2026", branch: "AIML", section: "CSE-B", semester: 5, cgpa: 9.0, attendance_percentage: 96, backlogs: 0 },
+      { name: "Nikhil Joshi", roll_number: "ST22BTECH10004", email: "nikhil.joshi@mahindra.university.edu", batch: "2022-2026", branch: "IT", section: "CSE-B", semester: 5, cgpa: 7.6, attendance_percentage: 81, backlogs: 0 }
     ];
 
     const students = [];
@@ -299,6 +307,7 @@ const seed = async () => {
         email: s.email,
         phone: "9876543210",
         batch: s.batch,
+        branch: s.branch,
         section: s.section,
         semester: s.semester,
         cgpa: s.cgpa,
@@ -345,12 +354,21 @@ const seed = async () => {
     }
 
     console.log("=== STEP 9: INSERTING PLACEMENTS ===");
-    await Placement.create({ student_id: students[0].id, company_name: "Google India", company_tier: "Tier 1", sector: "Software Development", opportunity_type: "FULL_TIME", amount: 18, status: "Active" });
-    await Placement.create({ student_id: students[2].id, company_name: "Microsoft India", company_tier: "Tier 1", sector: "Software Development", opportunity_type: "FULL_TIME", amount: 22, status: "Active" });
-    await Placement.create({ student_id: students[4].id, company_name: "Goldman Sachs", company_tier: "Tier 1", sector: "FinTech", opportunity_type: "FULL_TIME", amount: 20, status: "Active" });
-    await Placement.create({ student_id: students[7].id, company_name: "Amazon India", company_tier: "Tier 1", sector: "Software Development", opportunity_type: "FULL_TIME", amount: 19, status: "Active" });
-    await Placement.create({ student_id: students[5].id, company_name: "Flipkart", company_tier: "Tier 1", sector: "E-Commerce", opportunity_type: "INTERNSHIP", amount: 35000, status: "Active" });
-    await Placement.create({ student_id: students[3].id, company_name: "Infosys", company_tier: "Tier 2", sector: "IT Services", opportunity_type: "INTERNSHIP", amount: 20000, status: "Active" });
+    await Placement.create({ student_id: students[0].id, company_name: "Google India", company_tier: "Tier 1", sector: "Software Development", opportunity_type: "FULL_TIME", amount: 18, placed_date: "2025-03-14", status: "Active" });
+    await Placement.create({ student_id: students[2].id, company_name: "Microsoft India", company_tier: "Tier 1", sector: "Software Development", opportunity_type: "FULL_TIME", amount: 22, placed_date: "2025-02-28", status: "Active" });
+    await Placement.create({ student_id: students[4].id, company_name: "Goldman Sachs", company_tier: "Tier 1", sector: "FinTech", opportunity_type: "FULL_TIME", amount: 20, placed_date: "2025-04-09", status: "Active" });
+    await Placement.create({ student_id: students[7].id, company_name: "Amazon India", company_tier: "Tier 1", sector: "Software Development", opportunity_type: "FULL_TIME", amount: 19, placed_date: "2025-01-22", status: "Active" });
+    await Placement.create({ student_id: students[5].id, company_name: "Flipkart", company_tier: "Tier 1", sector: "E-Commerce", opportunity_type: "INTERNSHIP", amount: 35000, placed_date: "2024-11-12", status: "Active" });
+    await Placement.create({ student_id: students[3].id, company_name: "Infosys", company_tier: "Tier 2", sector: "IT Services", opportunity_type: "INTERNSHIP", amount: 20000, placed_date: "2024-10-05", status: "Active" });
+
+    console.log("=== STEP 9B: INSERTING JOB DRIVES ===");
+    await JobDrive.bulkCreate([
+      { companyName: "Adobe India", role: "Software Development Engineer", ctc: 28, branches: ["CSE", "AIML"], status: "Active", driveDate: "2026-09-18", openings: 12 },
+      { companyName: "Deloitte", role: "Technology Analyst", ctc: 11, branches: ["CSE", "IT"], status: "Upcoming", driveDate: "2026-09-25", openings: 20 },
+      { companyName: "NVIDIA", role: "AI Systems Intern", ctc: 18, branches: ["AIML"], status: "Active", driveDate: "2026-10-03", openings: 8 },
+      { companyName: "TCS Digital", role: "Digital Specialist Engineer", ctc: 7.5, branches: ["CSE", "IT", "AIML"], status: "Upcoming", driveDate: "2026-10-12", openings: 30 },
+      { companyName: "Infosys", role: "Systems Engineer", ctc: 4.5, branches: ["IT"], status: "Closed", driveDate: "2026-08-20", openings: 15 }
+    ]);
 
     console.log("=== STEP 10: INSERTING RESEARCH PROJECTS ===");
     const project1 = await ResearchProject.create({

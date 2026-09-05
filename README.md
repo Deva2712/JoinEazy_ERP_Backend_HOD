@@ -142,7 +142,7 @@ cd joineazy-backend-hod
 The `.env` file is already configured for local development:
 
 **Key settings:**
-- `PORT=6000` — HOD Backend listens on port 6000 (separate from professor backend on 5000)
+- `PORT=6060` — HOD Backend listens on port 6060 (separate from professor backend on 5000)
 - `DATABASE_HOST=postgres` — Docker PostgreSQL service
 - `DATABASE_NAME=joineazy_hod_dev` — Separate database for HOD data
 - `JWT_SECRET=joineazy_hod_dev_secret_key_2026` — JWT signing key (dev only)
@@ -153,7 +153,7 @@ The `.env` file is already configured for local development:
 
 Docker Compose will start **2 containers**:
 1. **PostgreSQL** (port 5433 on host) — dedicated HOD database
-2. **HOD Backend API** (port 6000)
+2. **HOD Backend API** (port 6060)
 
 ```bash
 docker-compose up --build
@@ -163,7 +163,7 @@ docker-compose up --build
 - PostgreSQL container starts and creates `joineazy_hod_dev` database
 - Backend builds, installs dependencies, starts with `nodemon`
 - Backend connects to PostgreSQL and syncs all HOD models
-- API is live at `http://10.70.23.112:6000` and `http://localhost:6000`
+- API is live at `http://10.70.23.112:6060` and `http://localhost:6060`
 
 **Check the logs:**
 ```bash
@@ -174,14 +174,14 @@ Expected output:
 ```
 ✅ PostgreSQL connected
 Database synced
-HOD Backend running on port 6000 in development mode
+HOD Backend running on port 6060 in development mode
 ```
 
 ### **4. Test the API**
 
 **Health check:**
 ```bash
-curl http://10.70.23.112:6000/health
+curl http://10.70.23.112:6060/health
 ```
 
 **Expected response:**
@@ -197,16 +197,16 @@ curl http://10.70.23.112:6000/health
 
 ## 🌐 Running on Your Network (IPv4)
 
-The HOD backend is configured to bind to **10.70.23.112:6000**.
+The HOD backend is configured to bind to **10.70.23.112:6060**.
 
 ### **Access from Your Machine (10.70.23.112)**
 ```bash
-curl http://10.70.23.112:6000/health
+curl http://10.70.23.112:6060/health
 ```
 
 ### **Access from Intern's Machine (192.168.1.122)**
 ```bash
-curl http://10.70.23.112:6000/health
+curl http://10.70.23.112:6060/health
 ```
 
 ### **CORS Configuration**
@@ -400,8 +400,8 @@ logger.error("Failed to generate report", { error });
 
 ## 🐛 Troubleshooting
 
-**"Port 6000 already in use"**
-- Change `PORT=6000` in `.env` to another port
+**"Port 6060 already in use"**
+- Change `PORT=6060` in `.env` to another port
 
 **"Cannot connect to database"**
 - Ensure PostgreSQL container is running: `docker ps`
@@ -417,7 +417,7 @@ logger.error("Failed to generate report", { error });
 
 | Feature | Professor Backend | HOD Backend |
 |---------|-------------------|-------------|
-| **Port** | 5000 | 6000 |
+| **Port** | 5000 | 6060 |
 | **Database** | `joineazy_dev` (5432) | `joineazy_hod_dev` (5433) |
 | **Scope** | Cohort-level (teaching) | Department-level (management) |
 | **Key Modules** | Cohorts, Assignments, Attendance | Department analytics, Faculty, Placements |
