@@ -14,7 +14,7 @@ export const getAttendanceLogs = asyncHandler(async (req, res) => {
 // GET /professor/logs
 export const getProfessorLogs = asyncHandler(async (req, res) => {
   const result = await service.getProfessorLogs(req.user.id);
-  res.status(200).json({ success: true, data: result });
+  res.status(200).json(result);
 });
 
 // POST /courses/:courseId/attendance
@@ -34,3 +34,4 @@ export const markAttendance = asyncHandler(async (req, res) => {
   const result = await service.markAttendance(courseId, req.body, professor, cohortId);
   res.status(200).json(result);
 });
+

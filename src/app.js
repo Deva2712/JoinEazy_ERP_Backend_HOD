@@ -44,6 +44,9 @@ import cohortAssignmentsGradeRoutes from "./modules/cohort-assignments/cohort-as
 import cohortAttendanceRoutes from "./modules/cohort-attendance/cohort-attendance-routes.js";
 import cohortMembersRoutes from "./modules/cohort-members/cohort-members-routes.js";
 import cohortResourcesRoutes from "./modules/cohort-resources/cohort-resources-routes.js";
+import cohortMeetingsRoutes from "./modules/cohort-meetings/cohort-meetings-routes.js";
+import registrarRoutes from "./modules/registrar/registrar-routes.js";
+import lorRoutes from "./modules/registrar/lor-routes.js";
 
 // Middleware imports
 import { errorHandler } from "./middleware/error.middleware.js";
@@ -93,6 +96,8 @@ app.use("/api/v1/assets", assetRequestRoutes);
 app.use("/api/v1/maintenance", maintenanceRoutes);
 app.use("/api/v1/finance/expenses", expensesRoutes);
 app.use("/api/v1/finance/advances", advancesRoutes);
+app.use("/api/v1/expenses", expensesRoutes);
+app.use("/api/v1/advances", advancesRoutes);
 app.use("/api/v1/payroll", payrollRoutes);
 app.use("/api/v1/calendar", calendarRoutes);
 app.use("/api/v1/professor", revalProfRoutes);
@@ -103,6 +108,10 @@ app.use("/api/v1/cohort/:cohortId/assignments", cohortAssignmentsRoutes);
 app.use("/api/v1/cohort/:cohortId/members", cohortMembersRoutes);
 app.use("/api/v1/cohort/:cohortId/resources", cohortResourcesRoutes);
 app.use("/api/v1/cohort", cohortRoutes);
+app.use("/api/v1/cohort/:cohortId/meetings", cohortMeetingsRoutes);
+app.use("/api/v1/cohort/:cohortId", cohortMeetingsRoutes);
+app.use("/api/v1/registrar", registrarRoutes);
+app.use("/api/v1/lor", lorRoutes);
 app.use("/api/v1", cohortAttendanceRoutes);
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
@@ -118,3 +127,5 @@ app.get("/health", (req, res) => {
 app.use(errorHandler);
 
 export default app;
+
+
